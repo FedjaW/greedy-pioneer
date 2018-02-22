@@ -10,7 +10,7 @@ using namespace std;
 int rows;
 int cols;
 double mapResolution;
-vector<vector<bool> > grid;
+vector<vector<int> > grid;
 
 bool requestMap(ros::NodeHandle &nh);
 void readMap(const nav_msgs::OccupancyGrid& msg);
@@ -19,7 +19,7 @@ void printGridToFile();
 
 int main (int argc, char** argv){
 
-  ros::init(argc, argv, "getOccupancyGridMap"); //TODO: mapping = getOccupancyGridMap
+  ros::init(argc, argv, "getOccupancyGridMap"); 
   ros::NodeHandle nh;
 
   if (!requestMap(nh))
@@ -28,8 +28,6 @@ int main (int argc, char** argv){
   printGridToFile();
 
   return 0;
-
-
 }
 
 
@@ -38,7 +36,7 @@ bool requestMap(ros::NodeHandle &nh){
 
   nav_msgs::GetMap::Request req;
   nav_msgs::GetMap::Response res;
-  
+
   while (!ros::service::waitForService("dynamic_map", ros::Duration(3.0))){
     ROS_INFO("Wating for service static map to become available\n");
   }
@@ -76,10 +74,11 @@ void readMap(const nav_msgs::OccupancyGrid& map){
   int currCell = 0;
   for (int i = 0; i < rows; i++){
     for(int j = 0; j< cols; j++){
-      if(map.data[currCell] == 0)
-        grid[i][j] = false;
-      else
-        grid[i][j] = true;
+        grid[i][j] = map.data[currCell];
+      // if(map.data[currCell] == 0)
+      //   grid[i][j] = false;
+      // else
+      //   grid[i][j] = true;
       currCell++;
     }
   }
@@ -91,16 +90,14 @@ void printGridToFile(){
   gridFile.open("grid.txt");
 
   for(int i = grid.size() - 1; i>= 0 ; i--){
-    for(int j = 0; j < grid[0].size(); j++){
-      gridFile << (grid[i][j] ? "1" : "0");
-    }
-    gridFile << endl;
+        for(int j = 0; j < grid[0].size(); j++){
+           // gridFile << (grid[i][j] ? "1" : "0");
+           gridFile << grid[i][j];
+        }
+        gridFile << endl;
   }
   gridFile.close();
 
     ROS_INFO("Habe das File gespeichert und geschlossen\n");
 }
-
-
-
 
