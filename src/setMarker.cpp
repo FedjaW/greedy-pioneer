@@ -9,7 +9,7 @@ int main( int argc, char** argv )
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
 
   // Set our initial shape type to be a cube
-  uint32_t shape = visualization_msgs::Marker::SPHERE;
+  // uint32_t shape = visualization_msgs::Marker::SPHERE;
 
   while (ros::ok())
   {
@@ -24,7 +24,7 @@ int main( int argc, char** argv )
     marker.id = 0;
 
     // Set the marker type.  
-    marker.type = shape;
+    marker.type = visualization_msgs::Marker::SPHERE;
 
     // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
     marker.action = visualization_msgs::Marker::ADD;
@@ -52,19 +52,16 @@ int main( int argc, char** argv )
     marker.lifetime = ros::Duration();
 
     // Publish the marker
-    while (marker_pub.getNumSubscribers() < 1)
-    {
-      if (!ros::ok())
-      {
-        return 0;
-      }
-      ROS_WARN_ONCE("Please create a subscriber to the marker");
-      sleep(1);
-    }
+    // while (marker_pub.getNumSubscribers() < 1)
+    // {
+    //   if (!ros::ok())
+    //   {
+    //     return 0;
+    //   }
+    //   ROS_WARN_ONCE("Please create a subscriber to the marker");
+    //   sleep(1);
+    // }
     marker_pub.publish(marker);
-
-      shape = visualization_msgs::Marker::SPHERE;
-
     r.sleep();
   }
 }
