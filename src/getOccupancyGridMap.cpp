@@ -8,7 +8,7 @@
 using namespace std;
 
     // void setMarker(visualization_msgs::Marker& marker, ros::NodeHandle &nh);
-    void setMarker(ros::NodeHandle &nh, int mark_x, int mark_y);
+    void setMarker(ros::NodeHandle &nh, double mark_x, double mark_y, int id);
     // visualization_msgs::Marker marker_global;
 
 bool waitForSubscribers(ros::Publisher & pub, ros::Duration timeout);
@@ -45,20 +45,20 @@ int main (int argc, char** argv){
 }
 
 
-void setMarker(ros::NodeHandle &nh, int mark_x, int  mark_y){
+void setMarker(ros::NodeHandle &nh, double mark_x, double  mark_y, int id){
             ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 20);
     visualization_msgs::Marker marker;
     // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-    marker.header.frame_id = "/map";
+    marker.header.frame_id = "/odom";
     marker.header.stamp = ros::Time::now();
 
     // Set the namespace and id for this marker.  This serves to create a unique ID
     // Any marker sent with the same namespace and id will overwrite the old one
     marker.ns = "basic_shapes";
-    marker.id = 0;
+    marker.id = id;
 
     // Set the marker type.  
-    marker.type = visualization_msgs::Marker::CUBE;
+    marker.type = visualization_msgs::Marker::SPHERE;
 
     // Set the marker action.  Options are ADD, DELETE, and new in ROS Indigo: 3 (DELETEALL)
     marker.action = visualization_msgs::Marker::ADD;
@@ -78,8 +78,8 @@ void setMarker(ros::NodeHandle &nh, int mark_x, int  mark_y){
 
     // Set the color -- be sure to set alpha to something non-zero!
     marker.color.r = 1.0f;
-    marker.color.g = 1.0f;
-    marker.color.b = 0.0f;
+    marker.color.g = 0.0f;
+    marker.color.b = 1.0f;
     marker.color.a = 1.0;
 
     marker.lifetime = ros::Duration();
@@ -157,10 +157,15 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
   ROS_INFO("grid_frame_x = %d \n", grid_frame_x);
   ROS_INFO("grid_frame_y = %d \n", grid_frame_y);
 
-                 int mark_pos_x = map_frame_x;
-                 int mark_pos_y = map_frame_y;
-                 setMarker(nh, mark_pos_x, mark_pos_y);
+                 double mark_pos_x = map_frame_x;
+                 double mark_pos_y = map_frame_y;
+                 int id = 0;
+                 setMarker(nh, mark_pos_x, mark_pos_y, id);
 
+                 // mark_pos_x = ;
+                 // mark_pos_y = ;
+                 // id = 1;
+                 // setMarker(nh, mark_pos_x, mark_pos_y, id);
 
   rows = map.info.height;
   cols = map.info.width;
