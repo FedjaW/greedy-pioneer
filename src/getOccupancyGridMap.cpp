@@ -7,6 +7,11 @@
 
 using namespace std;
 
+    unsigned int grid_cell_x[9050];
+    unsigned int grid_cell_y[9050];
+    void findFrontiers();
+        
+
     // void setMarker(visualization_msgs::Marker& marker, ros::NodeHandle &nh);
     void setMarker(ros::NodeHandle &nh, double mark_x, double mark_y, int id);
     // visualization_msgs::Marker marker_global;
@@ -39,6 +44,8 @@ int main (int argc, char** argv){
 
     if (!requestMap(nh))
         exit(-1);
+    
+    // findFrontiers();
 
     // printGridToFile();
     return 0;
@@ -72,14 +79,14 @@ void setMarker(ros::NodeHandle &nh, double mark_x, double  mark_y, int id){
     marker.pose.orientation.w = 1.0;
 
     // Set the scale of the marker -- 1x1x1 here means 1m on a side
-    marker.scale.x = 0.2;
-    marker.scale.y = 0.2;
-    marker.scale.z = 0.2;
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.scale.z = 0.1;
 
     // Set the color -- be sure to set alpha to something non-zero!
     marker.color.r = 1.0f;
-    marker.color.g = 0.0f;
-    marker.color.b = 1.0f;
+    marker.color.g = 1.0f;
+    marker.color.b = 0.0f;
     marker.color.a = 1.0;
 
     marker.lifetime = ros::Duration();
@@ -87,7 +94,7 @@ void setMarker(ros::NodeHandle &nh, double mark_x, double  mark_y, int id){
     ros::Duration timeout = ros::Duration(3);
     if(waitForSubscribers(marker_pub, timeout)){
         marker_pub.publish(marker);
-        ROS_INFO("habe marker gesetzt");
+        ROS_INFO("habe marker %d gesetzt", id);
     }
     else
         ROS_INFO("TIMEOUT");
@@ -157,11 +164,19 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
   ROS_INFO("grid_frame_x = %d \n", grid_frame_x);
   ROS_INFO("grid_frame_y = %d \n", grid_frame_y);
 
-                 double mark_pos_x = map_frame_x;
-                 double mark_pos_y = map_frame_y;
+ double ziel_map_frame_x = 991 * map.info.resolution + map.info.origin.position.x;
+ double ziel_map_frame_y = 991 * map.info.resolution + map.info.origin.position.y;
+                 double mark_pos_x = ziel_map_frame_x;
+                 double mark_pos_y = ziel_map_frame_y;
                  int id = 0;
                  setMarker(nh, mark_pos_x, mark_pos_y, id);
 
+  ziel_map_frame_x = 0 * map.info.resolution + map.info.origin.position.x;
+  ziel_map_frame_y = 991 * map.info.resolution + map.info.origin.position.y;
+                  mark_pos_x = ziel_map_frame_x;
+                  mark_pos_y = ziel_map_frame_y;
+                  id = 2;
+                 setMarker(nh, mark_pos_x, mark_pos_y, id);
                  // mark_pos_x = ;
                  // mark_pos_y = ;
                  // id = 1;
@@ -185,26 +200,37 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
             currCell++;
     }
   }
+
+
+              findFrontiers();
+               for(int i = 25; i < 600; i = i + 25){
+                    double ziel_map_frame_x = grid_cell_x[i] * map.info.resolution + map.info.origin.position.x;
+                    double ziel_map_frame_y = grid_cell_y[i] * map.info.resolution + map.info.origin.position.y;
+                    double mark_pos_x = ziel_map_frame_x;
+                    double mark_pos_y = ziel_map_frame_y;
+                    int id = i;
+                    setMarker(nh, mark_pos_x, mark_pos_y, id);
+               }
 }
 
-void printGridToFile(){
-  ofstream gridFile;
-  gridFile.open("grid.txt");
-
-  for(int i = grid.size() - 1; i>= 0 ; i--){
-        for(int j = 0; j < grid[0].size(); j++){
-           // gridFile << (grid[i][j] ? "1" : "0");
-            if(i == 148 && j == 455)
-                gridFile << "R";
-            else
-                gridFile << grid[i][j];
-        }
-        gridFile << endl;
-  }
-  
-  gridFile.close();
-  ROS_INFO("Habe das File gespeichert und geschlossen\n");
-}
+// void printGridToFile(){
+//   ofstream gridFile;
+//   gridFile.open("grid.txt");
+//
+//   for(int i = grid.size() - 1; i>= 0 ; i--){
+//         for(int j = 0; j < grid[0].size(); j++){
+//            // gridFile << (grid[i][j] ? "1" : "0");
+//             if(i == 148 && j == 455)
+//                 gridFile << "R";
+//             else
+//                 gridFile << grid[i][j];
+//         }
+//         gridFile << endl;
+//   }
+//   
+//   gridFile.close();
+//   ROS_INFO("Habe das File gespeichert und geschlossen\n");
+// }
 
 // Read out the odometry _________________________________________________________
 void OdomCallback(const nav_msgs::Odometry::ConstPtr& msg){
@@ -213,3 +239,67 @@ void OdomCallback(const nav_msgs::Odometry::ConstPtr& msg){
          // ROS_INFO("x: %f, y: %f",map_frame_x ,map_frame_y );
         ROS_INFO("odom callback");
 }
+
+
+
+void findFrontiers(){
+    unsigned int k = 0;
+    // for(int i = 1; i < rows ; i++){
+    //        for(int j = 1; j < cols -1 ; j++){
+  for(int i = grid.size() - 1; i>= 0 ; i--){
+        for(int j = 0; j < grid[0].size(); j++){
+                if(grid[i][j] == 100){
+                        grid_cell_x[k] = j;
+                        grid_cell_y[k] = i;
+                        k++;
+                        ROS_INFO("Free cell [%d]: x = %d",k, i);
+                        ROS_INFO("Free cell [%d]: y = %d",k, j);
+                    
+                    // if(grid[i+1][j] == -1){
+                    //     grid_cell_x[k] = i;
+                    //     grid_cell_y[k] = j;
+                    //     ROS_INFO("frontier rechts");
+                    //     ROS_INFO("frontier [%d]: x = %d",k, i);
+                    //     ROS_INFO("frontier [%d]: y = %d",k, j);
+                    //     ROS_INFO("--------------");
+                    //     k++;
+                    // }
+                    // else if(grid[i][j+1] == -1){
+                    //     grid_cell_x[k] = i;
+                    //     grid_cell_y[k] = j;
+                    //     ROS_INFO("frontier oben");
+                    //     ROS_INFO("frontier [%d]: x = %d",k, i);
+                    //     ROS_INFO("frontier [%d]: y = %d",k, j);
+                    //     ROS_INFO("--------------");
+                    //     k++;
+                    // }
+                    // else if(grid[i-1][j] == -1){
+                    //     grid_cell_x[k] = i;
+                    //     grid_cell_y[k] = j;
+                    //     ROS_INFO("frontier links");
+                    //     ROS_INFO("frontier [%d]: x = %d",k, i);
+                    //     ROS_INFO("frontier [%d]: y = %d",k, j);
+                    //     ROS_INFO("--------------");
+                    //     k++;
+                    // }
+                    // else if(grid[i][j-1] == -1){
+                    //     grid_cell_x[k] = i;
+                    //     grid_cell_y[k] = j;
+                    //     ROS_INFO("frontier unten");
+                    //     ROS_INFO("frontier [%d]: x = %d",k, i);
+                    //     ROS_INFO("frontier [%d]: y = %d",k, j);
+                    //     ROS_INFO("--------------");
+                    //     k++;
+                    // }
+                }
+            }
+     }
+
+}
+
+
+
+// struct frontiers {
+//     unsigned int grid_cell_x[10];
+//     unsigned int grid_cell_y[10];
+// };
