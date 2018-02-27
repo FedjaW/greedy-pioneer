@@ -203,7 +203,7 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
 
 
               findFrontiers();
-               for(int i = 25; i < 600; i = i + 25){
+               for(int i = 600; i < 1400; i = i + 25){
                     double ziel_map_frame_x = grid_cell_x[i] * map.info.resolution + map.info.origin.position.x;
                     double ziel_map_frame_y = grid_cell_y[i] * map.info.resolution + map.info.origin.position.y;
                     double mark_pos_x = ziel_map_frame_x;
@@ -244,53 +244,50 @@ void OdomCallback(const nav_msgs::Odometry::ConstPtr& msg){
 
 void findFrontiers(){
     unsigned int k = 0;
-    // for(int i = 1; i < rows ; i++){
-    //        for(int j = 1; j < cols -1 ; j++){
-  for(int i = grid.size() - 1; i>= 0 ; i--){
+    for(int i = grid.size() - 1; i>= 0 ; i--){
         for(int j = 0; j < grid[0].size(); j++){
-                if(grid[i][j] == 100){
+                if(grid[i][j] == 0){
+                        // grid_cell_x[k] = j;
+                        // grid_cell_y[k] = i;
+                        // k++;
+                        // ROS_INFO("Free cell [%d]: x = %d",k, i);
+                        // ROS_INFO("Free cell [%d]: y = %d",k, j);
+                    if(grid[i+1][j] == -1){
                         grid_cell_x[k] = j;
                         grid_cell_y[k] = i;
+                        ROS_INFO("frontier rechts");
+                        ROS_INFO("frontier [%d]: x = %d",k, j);
+                        ROS_INFO("frontier [%d]: y = %d",k, i);
+                        ROS_INFO("--------------");
                         k++;
-                        ROS_INFO("Free cell [%d]: x = %d",k, i);
-                        ROS_INFO("Free cell [%d]: y = %d",k, j);
-                    
-                    // if(grid[i+1][j] == -1){
-                    //     grid_cell_x[k] = i;
-                    //     grid_cell_y[k] = j;
-                    //     ROS_INFO("frontier rechts");
-                    //     ROS_INFO("frontier [%d]: x = %d",k, i);
-                    //     ROS_INFO("frontier [%d]: y = %d",k, j);
-                    //     ROS_INFO("--------------");
-                    //     k++;
-                    // }
-                    // else if(grid[i][j+1] == -1){
-                    //     grid_cell_x[k] = i;
-                    //     grid_cell_y[k] = j;
-                    //     ROS_INFO("frontier oben");
-                    //     ROS_INFO("frontier [%d]: x = %d",k, i);
-                    //     ROS_INFO("frontier [%d]: y = %d",k, j);
-                    //     ROS_INFO("--------------");
-                    //     k++;
-                    // }
-                    // else if(grid[i-1][j] == -1){
-                    //     grid_cell_x[k] = i;
-                    //     grid_cell_y[k] = j;
-                    //     ROS_INFO("frontier links");
-                    //     ROS_INFO("frontier [%d]: x = %d",k, i);
-                    //     ROS_INFO("frontier [%d]: y = %d",k, j);
-                    //     ROS_INFO("--------------");
-                    //     k++;
-                    // }
-                    // else if(grid[i][j-1] == -1){
-                    //     grid_cell_x[k] = i;
-                    //     grid_cell_y[k] = j;
-                    //     ROS_INFO("frontier unten");
-                    //     ROS_INFO("frontier [%d]: x = %d",k, i);
-                    //     ROS_INFO("frontier [%d]: y = %d",k, j);
-                    //     ROS_INFO("--------------");
-                    //     k++;
-                    // }
+                    }
+                    else if(grid[i][j+1] == -1){
+                        grid_cell_x[k] = j;
+                        grid_cell_y[k] = i;
+                        ROS_INFO("frontier oben");
+                        ROS_INFO("frontier [%d]: x = %d",k, j);
+                        ROS_INFO("frontier [%d]: y = %d",k, i);
+                        ROS_INFO("--------------");
+                        k++;
+                    }
+                    else if(grid[i-1][j] == -1){
+                        grid_cell_x[k] = j;
+                        grid_cell_y[k] = i;
+                        ROS_INFO("frontier links");
+                        ROS_INFO("frontier [%d]: x = %d",k, j);
+                        ROS_INFO("frontier [%d]: y = %d",k, i);
+                        ROS_INFO("--------------");
+                        k++;
+                    }
+                    else if(grid[i][j-1] == -1){
+                        grid_cell_x[k] = j;
+                        grid_cell_y[k] = i;
+                        ROS_INFO("frontier unten");
+                        ROS_INFO("frontier [%d]: x = %d",k, j);
+                        ROS_INFO("frontier [%d]: y = %d",k, i);
+                        ROS_INFO("--------------");
+                        k++;
+                    }
                 }
             }
      }
