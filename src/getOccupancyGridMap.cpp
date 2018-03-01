@@ -4,8 +4,16 @@
 #include <fstream>
 #include <nav_msgs/Odometry.h>
 #include <visualization_msgs/Marker.h>
+    
+#include <move_base_msgs/MoveBaseAction.h>
+#include <actionlib/client/simple_action_client.h>
+
+
 
 using namespace std;
+
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+void sendGoal(double position_x, double position_y, double orientation_w);
 
     unsigned int grid_cell_x[9050];
     unsigned int grid_cell_y[9050];
@@ -175,7 +183,7 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
   ziel_map_frame_y = 991 * map.info.resolution + map.info.origin.position.y;
                   mark_pos_x = ziel_map_frame_x;
                   mark_pos_y = ziel_map_frame_y;
-                  id = 2;
+                  id = 1;
                  setMarker(nh, mark_pos_x, mark_pos_y, id);
                  // mark_pos_x = ;
                  // mark_pos_y = ;
@@ -203,14 +211,23 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
 
 
               findFrontiers();
-               for(int i = 600; i < 1400; i = i + 25){
-                    double ziel_map_frame_x = grid_cell_x[i] * map.info.resolution + map.info.origin.position.x;
-                    double ziel_map_frame_y = grid_cell_y[i] * map.info.resolution + map.info.origin.position.y;
-                    double mark_pos_x = ziel_map_frame_x;
-                    double mark_pos_y = ziel_map_frame_y;
-                    int id = i;
+               // for(int i = 50; i < 1400; i = i + 50){
+               //      double ziel_map_frame_x = grid_cell_x[i] * map.info.resolution + map.info.origin.position.x;
+               //      double ziel_map_frame_y = grid_cell_y[i] * map.info.resolution + map.info.origin.position.y;
+               //      double mark_pos_x = ziel_map_frame_x;
+               //      double mark_pos_y = ziel_map_frame_y;
+               //      int id = i;
+               //      setMarker(nh, mark_pos_x, mark_pos_y, id);
+               // }
+
+                    ziel_map_frame_x = grid_cell_x[5] * map.info.resolution + map.info.origin.position.x;
+                    ziel_map_frame_y = grid_cell_y[5] * map.info.resolution + map.info.origin.position.y;
+                    mark_pos_x = ziel_map_frame_x;
+                    mark_pos_y = ziel_map_frame_y;
+                    id = 2;
                     setMarker(nh, mark_pos_x, mark_pos_y, id);
-               }
+                    sendGoal(mark_pos_x, mark_pos_y, 1.0);
+
 }
 
 // void printGridToFile(){
@@ -296,7 +313,39 @@ void findFrontiers(){
 
 
 
-// struct frontiers {
-//     unsigned int grid_cell_x[10];
-//     unsigned int grid_cell_y[10];
-// };
+void sendGoal(double position_x, double position_y, double orientation_w){
+
+  //tell the action client that we want to spin a thread by default
+  MoveBaseClient ac("move_base", true);
+
+  //wait for the action server to come up
+  while(!ac.waitForServer(ros::Duration(5.0))){
+    ROS_INFO("Waiting for the move_base action server to come up");
+  }
+
+  move_base_msgs::MoveBaseGoal goal;
+
+  //we'll send a goal to the robot to move 
+  goal.target_pose.header.frame_id = "map";
+  goal.target_pose.header.stamp = ros::Time::now();
+
+  goal.target_pose.pose.position.x = position_x;
+  goal.target_pose.pose.position.y = position_y;
+  goal.target_pose.pose.orientation.w = orientation_w;
+
+  ROS_INFO("Sending goal");
+  ac.sendGoal(goal);
+
+  ac.waitForResult();
+
+  if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    ROS_INFO("Hooray, we reached the goal");
+  else
+    ROS_INFO("We didn't make it :-(");
+
+
+}
+
+
+
+

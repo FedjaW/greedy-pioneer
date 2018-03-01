@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   visualization_msgs
+  move_base_msgs
+  actionlib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -110,7 +112,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES greedy_pioneer
-  CATKIN_DEPENDS costmap_2d geometry_msgs nav_msgs roscpp std_msgs tf visualization_msgs
+  CATKIN_DEPENDS costmap_2d geometry_msgs nav_msgs roscpp std_msgs tf visualization_msgs move_base_msgs actionlib
 #  DEPENDS system_lib
 )
 
@@ -139,6 +141,12 @@ add_dependencies(getOccupancyGridMap greedy_pioneer_generate_message_cpp)
 add_executable(setMarker src/setMarker.cpp)
 target_link_libraries(setMarker ${catkin_LIBRARIES})
 add_dependencies(setMarker greedy_pioneer_generate_message_cpp)
+
+
+add_executable(sendGoal_example src/sendGoal_example.cpp)
+target_link_libraries(sendGoal_example ${catkin_LIBRARIES})
+add_dependencies(sendGoal_example greedy_pioneer_generate_message_cpp)
+
 
 
 ## Add cmake target dependencies of the library
