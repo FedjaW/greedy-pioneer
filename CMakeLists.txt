@@ -148,6 +148,10 @@ target_link_libraries(sendGoal_example ${catkin_LIBRARIES})
 add_dependencies(sendGoal_example greedy_pioneer_generate_message_cpp)
 
 
+add_executable(searchRegion src/searchRegion.cpp)
+target_link_libraries(searchRegion ${catkin_LIBRARIES})
+add_dependencies(searchRegion greedy_pioneer_generate_message_cpp)
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

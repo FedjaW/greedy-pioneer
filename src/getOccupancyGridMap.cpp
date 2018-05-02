@@ -220,8 +220,8 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
                //      setMarker(nh, mark_pos_x, mark_pos_y, id);
                // }
 
-                    ziel_map_frame_x = grid_cell_x[5] * map.info.resolution + map.info.origin.position.x;
-                    ziel_map_frame_y = grid_cell_y[5] * map.info.resolution + map.info.origin.position.y;
+                    ziel_map_frame_x = grid_cell_x[100] * map.info.resolution + map.info.origin.position.x;
+                    ziel_map_frame_y = grid_cell_y[100] * map.info.resolution + map.info.origin.position.y;
                     mark_pos_x = ziel_map_frame_x;
                     mark_pos_y = ziel_map_frame_y;
                     id = 2;
