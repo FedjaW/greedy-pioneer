@@ -11,6 +11,15 @@ unsigned int grid_cell_x[9050];
 unsigned int grid_cell_y[9050];
         
 
+int rows_cost;
+int cols_cost;
+double mapResolution_cost;
+nav_msgs::OccupancyGrid cur_grid;
+bool map_set = false;
+void saveMap(const nav_msgs::OccupancyGrid& grid);
+vector<vector<int> > grid_vec;
+
+
 // void setMarker(visualization_msgs::Marker& marker, ros::NodeHandle &nh);
 void setMarker(ros::NodeHandle &nh, double mark_x, double mark_y, int id);
 // visualization_msgs::Marker marker_global;
@@ -44,6 +53,7 @@ int main (int argc, char** argv){
     ros::init(argc, argv, "getOccupancyGridMap"); 
     ros::NodeHandle nh;
     ros::Subscriber sub = nh.subscribe("odometry/filtered",10,OdomCallback);
+	ros::Subscriber sub2 = nh.subscribe("/move_base/global_costmap/costmap", 10, saveMap); // costmap
     ros::Rate rate(10);
     rate.sleep();
     ros::spinOnce();
@@ -124,6 +134,44 @@ bool waitForSubscribers(ros::Publisher & pub, ros::Duration timeout)
 
 
 
+
+
+void saveMap(const nav_msgs::OccupancyGrid& grid)
+{
+cur_grid = grid;
+map_set = true;
+
+
+ROS_INFO("Received a %d X %d Costmap @ %.3f m/px\n", 
+                                                    cur_grid.info.width,
+                                                    cur_grid.info.height,
+                                                    cur_grid.info.resolution);
+
+    rows_cost = cur_grid.info.height;
+    cols_cost = cur_grid.info.width;
+    mapResolution_cost = cur_grid.info.resolution;
+
+   // Dynamically resize the Grid
+    grid_vec.resize(rows_cost);
+    for (int i = 0; i < rows_cost ; i++){
+        grid_vec[i].resize(cols_cost);
+    }
+
+    int currCell = 0;
+    for (int i = 0; i < rows_cost; i++){
+        for(int j = 0; j < cols_cost; j++){
+            grid_vec[i][j] = cur_grid.data[currCell];
+            currCell++;
+        }
+    }
+
+
+ROS_INFO("costmap map_set");
+}
+
+
+
+
 bool requestMap(ros::NodeHandle &nh){
 
   nav_msgs::GetMap::Request req;
@@ -135,7 +183,7 @@ bool requestMap(ros::NodeHandle &nh){
 
   ROS_INFO("Requesting the map..\n");
   ros::ServiceClient mapClient = nh.serviceClient<nav_msgs::GetMap>("dynamic_map");
-
+  
   if(mapClient.call(req, res)){
     readMap(res.map, nh);
     // ROS_INFO("res map orin = %.3f\n",res.map.info.origin.position.x);
@@ -252,7 +300,7 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
  
 
     findFrontiers();
-    for(int i = 0; i < global_k; i = i + 100){
+    for(int i = 0; i < global_k; i = i + 5){
                     ziel_map_frame_x = grid_cell_x[i] * map.info.resolution + map.info.origin.position.x;
                     ziel_map_frame_y = grid_cell_y[i] * map.info.resolution + map.info.origin.position.y;
                     mark_pos_x = ziel_map_frame_x;
@@ -281,7 +329,7 @@ void findFrontiers(){
 
     for(int i = y_such_max; i >= y_such_min; i--){
         for(int j = x_such_min; j < x_such_max; j++){
-                if(grid[i][j] == 0){
+                if((grid[i][j] == 0) && (grid_vec[i][j] == 0)){
                         // grid_cell_x[k] = j;
                         // grid_cell_y[k] = i;
                         // k++;

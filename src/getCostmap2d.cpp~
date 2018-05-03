@@ -44,6 +44,8 @@ ROS_INFO("Received a %d X %d Map @ %.3f m/px\n",
         }
     }
 printGridToFile();
+
+
 }
 
 
@@ -72,7 +74,10 @@ int main (int argc, char **argv) {
 	ROS_INFO("Testpunnkt 1");
 	ros::Subscriber sub = nh.subscribe("/move_base/global_costmap/costmap", 10, saveMap);
 	ros::spin();
-  
+    	
+	
+
+
 	return 0;
 }
 
