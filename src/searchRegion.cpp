@@ -31,6 +31,7 @@ int x_such_min;
 int x_such_max;
 int y_such_min;
 int y_such_max;
+unsigned int global_k;
 
 bool requestMap(ros::NodeHandle &nh);
 void readMap(const nav_msgs::OccupancyGrid& msg, ros::NodeHandle &nh);
@@ -55,7 +56,7 @@ int main (int argc, char** argv){
 
 
 void setMarker(ros::NodeHandle &nh, double mark_x, double  mark_y, int id){
-            ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 20);
+    ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 20);
     visualization_msgs::Marker marker;
     // Set the frame ID and timestamp.  See the TF tutorials for information on these.
     marker.header.frame_id = "/odom";
@@ -183,42 +184,43 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
                  // id = 2;
                  // setMarker(nh, mark_pos_x, mark_pos_y, id);
 
-
+// ________________________________SUCH REGION __________________________________________________________________
                  id = 2;
-                 setMarker(nh, map_frame_x, map_frame_y, id);
+                 setMarker(nh, map_frame_x, map_frame_y, id); // map_frame ist die Position des Roboters
 
                  id = 3;
-                 setMarker(nh, map_frame_x-2, map_frame_y-2, id);
-                    grid_frame_x = (unsigned int) ((map_frame_x-2 - map.info.origin.position.x)/map.info.resolution);
-                    grid_frame_y = (unsigned int) ((map_frame_y-2 - map.info.origin.position.y)/map.info.resolution);
+                 setMarker(nh, map_frame_x-5, map_frame_y-5, id);
+                    grid_frame_x = (unsigned int) ((map_frame_x-5 - map.info.origin.position.x)/map.info.resolution);
+                    grid_frame_y = (unsigned int) ((map_frame_y-5 - map.info.origin.position.y)/map.info.resolution);
                     ROS_INFO("grid_frame_x_links_unten = %d \n", grid_frame_x); // x_such_min
                     ROS_INFO("grid_frame_y_links_unten = %d \n", grid_frame_y); // y_such_min
-                    x_such_min = grid_frame_x;
+                    x_such_min = grid_frame_x; //x_such_min usw. sind alle Global; grid_frame_x nicht!
                     y_such_min = grid_frame_y;
 
                  id = 4;
-                 setMarker(nh, map_frame_x-2, map_frame_y+2, id);
-                    grid_frame_x = (unsigned int) ((map_frame_x-2 - map.info.origin.position.x)/map.info.resolution);
-                    grid_frame_y = (unsigned int) ((map_frame_y+2 - map.info.origin.position.y)/map.info.resolution);
+                 setMarker(nh, map_frame_x-5, map_frame_y+5, id);
+                    grid_frame_x = (unsigned int) ((map_frame_x-5 - map.info.origin.position.x)/map.info.resolution);
+                    grid_frame_y = (unsigned int) ((map_frame_y+5 - map.info.origin.position.y)/map.info.resolution);
                     ROS_INFO("grid_frame_x_links_oben = %d \n", grid_frame_x);
                     ROS_INFO("grid_frame_y_links_oben = %d \n", grid_frame_y); // y_such_max
                     y_such_max= grid_frame_y;
 
                  id = 5;
-                 setMarker(nh, map_frame_x+2, map_frame_y+2, id);
-                    grid_frame_x = (unsigned int) ((map_frame_x+2 - map.info.origin.position.x)/map.info.resolution);
-                    grid_frame_y = (unsigned int) ((map_frame_y+2 - map.info.origin.position.y)/map.info.resolution);
+                 setMarker(nh, map_frame_x+5, map_frame_y+5, id);
+                    grid_frame_x = (unsigned int) ((map_frame_x+5 - map.info.origin.position.x)/map.info.resolution);
+                    grid_frame_y = (unsigned int) ((map_frame_y+5 - map.info.origin.position.y)/map.info.resolution);
                     ROS_INFO("grid_frame_x_rechts_oben = %d \n", grid_frame_x);
                     ROS_INFO("grid_frame_y_rechts_oben = %d \n", grid_frame_y);
 
                  id = 6;
-                 setMarker(nh, map_frame_x+2, map_frame_y-2, id);
-                    grid_frame_x = (unsigned int) ((map_frame_x+2 - map.info.origin.position.x)/map.info.resolution);
-                    grid_frame_y = (unsigned int) ((map_frame_y-2 - map.info.origin.position.y)/map.info.resolution);
+                 setMarker(nh, map_frame_x+5, map_frame_y-5, id);
+                    grid_frame_x = (unsigned int) ((map_frame_x+5 - map.info.origin.position.x)/map.info.resolution);
+                    grid_frame_y = (unsigned int) ((map_frame_y-5 - map.info.origin.position.y)/map.info.resolution);
                     ROS_INFO("grid_frame_x_rechts_unten = %d \n", grid_frame_x); // x_such_max
                     ROS_INFO("grid_frame_y_rechts_unten = %d \n", grid_frame_y);
                     x_such_max= grid_frame_x;
 
+// ________________________________SUCH REGION ENDE _________________________________________________________________
 
      // ziel_map_frame_x = grid_frame_x * map.info.resolution + map.info.origin.position.x;
      // ziel_map_frame_y = grid_frame_y * map.info.resolution + map.info.origin.position.y;
@@ -247,17 +249,17 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
     }
   }
 
-     
+ 
 
-                    findFrontiers();
-for(int i = 0; i<1000;i = i+ 50){
+    findFrontiers();
+    for(int i = 0; i < global_k; i = i + 100){
                     ziel_map_frame_x = grid_cell_x[i] * map.info.resolution + map.info.origin.position.x;
                     ziel_map_frame_y = grid_cell_y[i] * map.info.resolution + map.info.origin.position.y;
                     mark_pos_x = ziel_map_frame_x;
                     mark_pos_y = ziel_map_frame_y;
                     id = i+7;
                     setMarker(nh, mark_pos_x, mark_pos_y, id);
-}
+    }
 }
 
 
@@ -270,8 +272,8 @@ void OdomCallback(const nav_msgs::Odometry::ConstPtr& msg){
 }
 
 
-
-
+// Find frontiers________________________________________________________________
+// Finde alle Frontiers nach der Neumann-Nachbarschaft (ToDo: auf Moore-Nachbarschaft ändern)
 void findFrontiers(){
     unsigned int k = 0;
     // for(int i = grid.size() - 1; i>= 0 ; i--){
@@ -324,7 +326,7 @@ void findFrontiers(){
                 }
             }
      }
-
+global_k = k;
 }
 
 
