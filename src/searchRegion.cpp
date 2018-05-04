@@ -309,17 +309,17 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
  
 
     findFrontiers();
-    // for(int i = 0; i < global_k; i = i + 10){
-    //                 ziel_map_frame_x = grid_cell_x[i] * map.info.resolution + map.info.origin.position.x;
-    //                 ziel_map_frame_y = grid_cell_y[i] * map.info.resolution + map.info.origin.position.y;
-    //                 mark_pos_x = ziel_map_frame_x;
-    //                 mark_pos_y = ziel_map_frame_y;
-    //                 id = i+7;
-    //                 setMarker(nh, mark_pos_x, mark_pos_y, id);
-    // }
+    id = 7;
+    for(int i = 0; i < 217; i = i + 10){
+                    ziel_map_frame_x = grid_cell_x[i] * map.info.resolution + map.info.origin.position.x;
+                    ziel_map_frame_y = grid_cell_y[i] * map.info.resolution + map.info.origin.position.y;
+                    mark_pos_x = ziel_map_frame_x;
+                    mark_pos_y = ziel_map_frame_y;
+                    id++;
+                    setMarker(nh, mark_pos_x, mark_pos_y, id);
+    }
 
     extractFrontierRegion();
-    id = 7;
     for(int i = 0; i < n; i++){
                     ziel_map_frame_x = grid_cell_x[startFrontier[bigFrontier[i]]] * map.info.resolution + map.info.origin.position.x;
                     ziel_map_frame_y = grid_cell_y[startFrontier[bigFrontier[i]]] * map.info.resolution + map.info.origin.position.y;
@@ -328,8 +328,8 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
                     id++;
                     setMarker(nh, mark_pos_x, mark_pos_y, id);
 
-                    ziel_map_frame_x = grid_cell_x[endFrontier[i]] * map.info.resolution + map.info.origin.position.x;
-                    ziel_map_frame_y = grid_cell_y[endFrontier[i]] * map.info.resolution + map.info.origin.position.y;
+                    ziel_map_frame_x = grid_cell_x[endFrontier[bigFrontier[i]]] * map.info.resolution + map.info.origin.position.x;
+                    ziel_map_frame_y = grid_cell_y[endFrontier[bigFrontier[i]]] * map.info.resolution + map.info.origin.position.y;
                     mark_pos_x = ziel_map_frame_x;
                     mark_pos_y = ziel_map_frame_y;
                     id++;
@@ -407,28 +407,32 @@ global_k = k;
 
 void extractFrontierRegion(){
     for(int i = 0; i < global_k-1; i++){
-            // ROS_INFO("i = %d", i);
-                // ROS_INFO("fronteri 166 = %u", grid_cell_x[166]);
-                // ROS_INFO("fronteri 167 = %u", grid_cell_x[167]);
-                // ROS_INFO("__difference_x_166-167 = %u", grid_cell_x[166] - grid_cell_x[167]);
-                //  int diff;
-                // diff = grid_cell_x[166] - grid_cell_x[167];
-                // ROS_INFO("diff = %d", diff);
-                // ROS_INFO("__difference_x = %u", grid_cell_x[i] - grid_cell_x[i+1]);
-                // ROS_INFO("__difference_y= %u", grid_cell_y[i] - grid_cell_y[i+1]);
+        // ROS_INFO("i = %d", i);
+        // ROS_INFO("fronteri 166 = %u", grid_cell_x[166]);
+        // ROS_INFO("fronteri 167 = %u", grid_cell_x[167]);
+        // ROS_INFO("__difference_x_166-167 = %u", grid_cell_x[166] - grid_cell_x[167]);
+        //  int diff;
+        // diff = grid_cell_x[166] - grid_cell_x[167];
+        // ROS_INFO("diff = %d", diff);
+        // ROS_INFO("__difference_x = %u", grid_cell_x[i] - grid_cell_x[i+1]);
+        // ROS_INFO("__difference_y= %u", grid_cell_y[i] - grid_cell_y[i+1]);
         if ( (abs(grid_cell_x[i] - grid_cell_x[i+1]) <= 20) && (abs(grid_cell_y[i] - grid_cell_y[i+1]) <= 20)){
             startFrontier[nr] = i;
-            ROS_INFO("StartFrontier[%d] = %d",nr, startFrontier[nr]);
+            // ROS_INFO("StartFrontier[%d] = %d",nr, startFrontier[nr]);
             do{
                 i++; 
                 // ROS_INFO("difference_x = %d", grid_cell_x[i] - grid_cell_x[i+1]);
                 // ROS_INFO("difference_y= %d", grid_cell_y[i] - grid_cell_y[i+1]);
             }while((abs(grid_cell_x[i] - grid_cell_x[i+1]) <= 20) && (abs(grid_cell_y[i] - grid_cell_y[i+1]) <= 20));
             endFrontier[nr] = i;
-            ROS_INFO("endFrontier[%d] = %d",nr, endFrontier[nr]);
-            ROS_INFO("--------------");
+            // ROS_INFO("endFrontier[%d] = %d",nr, endFrontier[nr]);
+            // ROS_INFO("--------------");
             if (endFrontier[nr] - startFrontier[nr] >= 10){
+                ROS_INFO("StartFrontier[%d] = %d",nr, startFrontier[nr]);
+                ROS_INFO("endFrontier[%d] = %d",nr, endFrontier[nr]);
                 bigFrontier[n] = nr;
+                ROS_INFO("bigFrontier[%d] = %d",n, bigFrontier[n]);
+                ROS_INFO("--------------");
                 n++;
             }
             nr++;
