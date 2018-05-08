@@ -6,7 +6,13 @@
 #include <nav_msgs/Odometry.h>
 #include <visualization_msgs/Marker.h>
     
+#include <move_base_msgs/MoveBaseAction.h>
+#include <actionlib/client/simple_action_client.h>
+
 using namespace std;
+
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+void sendGoal(double position_x, double position_y, double orientation_w);
 
  int grid_cell_x[9050];
  int grid_cell_y[9050];
@@ -31,7 +37,6 @@ unsigned int n = 0;
 void setMarker(ros::NodeHandle &nh, double mark_x, double mark_y, int id, double r, double g, double b);
 // visualization_msgs::Marker marker_global;
 
-bool waitForSubscribers(ros::Publisher & pub, ros::Duration timeout);
 // grid map
 int rows;
 int cols;
@@ -76,7 +81,7 @@ void setMarker(ros::NodeHandle &nh, double mark_x, double  mark_y, int id, doubl
     ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 20);
     visualization_msgs::Marker marker;
     // Set the frame ID and timestamp.  See the TF tutorials for information on these.
-    marker.header.frame_id = "/odom";
+    marker.header.frame_id = "/map";
     marker.header.stamp = ros::Time::now();
 
     // Set the namespace and id for this marker.  This serves to create a unique ID
@@ -99,9 +104,9 @@ void setMarker(ros::NodeHandle &nh, double mark_x, double  mark_y, int id, doubl
     marker.pose.orientation.w = 1.0;
 
     // Set the scale of the marker -- 1x1x1 here means 1m on a side
-    marker.scale.x = 0.08;
-    marker.scale.y = 0.08;
-    marker.scale.z = 0.08;
+    marker.scale.x = 0.04;
+    marker.scale.y = 0.04;
+    marker.scale.z = 0.04;
     
     // Set the color -- be sure to set alpha to something non-zero!
     marker.color.r = r;
@@ -114,31 +119,13 @@ void setMarker(ros::NodeHandle &nh, double mark_x, double  mark_y, int id, doubl
 // else marker.color.r = 1;
 
     marker.lifetime = ros::Duration();
-
-    ros::Duration timeout = ros::Duration(3);
-    if(waitForSubscribers(marker_pub, timeout)){
-        marker_pub.publish(marker);
-        ROS_INFO("habe marker %d gesetzt", id);
+    while (marker_pub.getNumSubscribers() < 1){
+            ROS_WARN_ONCE("Please create a subscriber to the marker");
+            sleep(0.1);
     }
-    else
-        ROS_INFO("TIMEOUT");
-}
-
-
-
-
-bool waitForSubscribers(ros::Publisher & pub, ros::Duration timeout)
-{
-    if(pub.getNumSubscribers() > 0)
-        return true;
-    ros::Time start = ros::Time::now();
-    ros::Rate waitTime(0.5);
-    while(ros::Time::now() - start < timeout) {
-        waitTime.sleep();
-        if(pub.getNumSubscribers() > 0)
-            break;
-    }
-    return pub.getNumSubscribers() > 0;
+    marker_pub.publish(marker);
+    ROS_INFO("habe marker %d gesetzt", id);
+        
 }
 
 
@@ -369,7 +356,7 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
             g = 1;
             b = 1;
         }
-        for(int i = startFrontier[bigFrontier[l]]; i < endFrontier[bigFrontier[l]]; i = i + 20){
+        for(int i = startFrontier[bigFrontier[l]]; i < endFrontier[bigFrontier[l]]; i = i + 1){
             ziel_map_frame_x = grid_cell_x[i] * map.info.resolution + map.info.origin.position.x;
             ziel_map_frame_y = grid_cell_y[i] * map.info.resolution + map.info.origin.position.y;
             mark_pos_x = ziel_map_frame_x;
@@ -379,8 +366,17 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
             setMarker(nh, mark_pos_x, mark_pos_y, id, r, g, b);
         }
     }
+    
+    int midFrontier = startFrontier[bigFrontier[0]] + ceil ((endFrontier[bigFrontier[0]] - startFrontier[bigFrontier[0]]) / 2);
 
+        ROS_INFO("midFrontier = %d", midFrontier);
+                    ziel_map_frame_x = grid_cell_x[midFrontier] * map.info.resolution + map.info.origin.position.x;
+                    ziel_map_frame_y = grid_cell_y[midFrontier] * map.info.resolution + map.info.origin.position.y;
+                    mark_pos_x = ziel_map_frame_x;
+                    mark_pos_y = ziel_map_frame_y;
+sendGoal(mark_pos_x, mark_pos_y, 1.0);
 }
+
 // Read out the odometry _________________________________________________________
 void OdomCallback(const nav_msgs::Odometry::ConstPtr& msg){
         map_frame_x = msg->pose.pose.position.x;
@@ -449,6 +445,8 @@ global_k = k;
 
 
 void extractFrontierRegion(){
+    int nhood_range = 1; // 1 -> direkte Nachbarschaft 
+    int min_size = 30;
     for(int i = 0; i < global_k-1; i++){
         // ROS_INFO("i = %d", i);
         // ROS_INFO("fronteri 166 = %u", grid_cell_x[166]);
@@ -459,18 +457,19 @@ void extractFrontierRegion(){
         // ROS_INFO("diff = %d", diff);
         // ROS_INFO("__difference_x = %u", grid_cell_x[i] - grid_cell_x[i+1]);
         // ROS_INFO("__difference_y= %u", grid_cell_y[i] - grid_cell_y[i+1]);
-        if ( (abs(grid_cell_x[i] - grid_cell_x[i+1]) <= 40) && (abs(grid_cell_y[i] - grid_cell_y[i+1]) <= 40)){
+
+        if ( (abs(grid_cell_x[i] - grid_cell_x[i+1]) <= nhood_range) && (abs(grid_cell_y[i] - grid_cell_y[i+1]) <= nhood_range)){
             startFrontier[nr] = i;
             // ROS_INFO("StartFrontier[%d] = %d",nr, startFrontier[nr]);
             do{
                 i++; 
                 // ROS_INFO("difference_x = %d", grid_cell_x[i] - grid_cell_x[i+1]);
                 // ROS_INFO("difference_y= %d", grid_cell_y[i] - grid_cell_y[i+1]);
-            }while((abs(grid_cell_x[i] - grid_cell_x[i+1]) <= 40) && (abs(grid_cell_y[i] - grid_cell_y[i+1]) <= 40));
+            }while((abs(grid_cell_x[i] - grid_cell_x[i+1]) <= nhood_range) && (abs(grid_cell_y[i] - grid_cell_y[i+1]) <= nhood_range));
             endFrontier[nr] = i;
             // ROS_INFO("endFrontier[%d] = %d",nr, endFrontier[nr]);
             // ROS_INFO("--------------");
-            if (endFrontier[nr] - startFrontier[nr] >= 30){
+            if (endFrontier[nr] - startFrontier[nr] >= min_size){
                 ROS_INFO("StartFrontier[%d] = %d",nr, startFrontier[nr]);
                 ROS_INFO("endFrontier[%d] = %d",nr, endFrontier[nr]);
                 bigFrontier[n] = nr;
@@ -481,4 +480,39 @@ void extractFrontierRegion(){
             nr++;
         }
     }
+}
+
+
+
+void sendGoal(double position_x, double position_y, double orientation_w){
+
+    //tell the action client that we want to spin a thread by default
+    MoveBaseClient ac("move_base", true);
+
+    //wait for the action server to come up
+    while(!ac.waitForServer(ros::Duration(5.0))){
+        ROS_INFO("Waiting for the move_base action server to come up");
+    }
+
+    move_base_msgs::MoveBaseGoal goal;
+
+    //we'll send a goal to the robot to move 
+    goal.target_pose.header.frame_id = "map";
+    goal.target_pose.header.stamp = ros::Time::now();
+
+    goal.target_pose.pose.position.x = position_x;
+    goal.target_pose.pose.position.y = position_y;
+    goal.target_pose.pose.orientation.w = orientation_w;
+
+    ROS_INFO("Sending goal");
+    ac.sendGoal(goal);
+
+    ac.waitForResult();
+
+    if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+        ROS_INFO("Hooray, we reached the goal");
+    else
+        ROS_INFO("We didn't make it :-(");
+
+
 }
