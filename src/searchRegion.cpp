@@ -6,10 +6,18 @@
 #include <nav_msgs/Odometry.h>
 #include <visualization_msgs/Marker.h>
     
+#include "geometry_msgs/Twist.h" // für die Rotation
+ros::Publisher velocity_publisher;  // für die Rotation
+
+
+
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
 
 using namespace std;
+
+void rotate();
+
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 void sendGoal(double position_x, double position_y, double orientation_w);
@@ -64,15 +72,17 @@ int main (int argc, char** argv){
 
     ros::init(argc, argv, "getOccupancyGridMap"); 
     ros::NodeHandle nh;
+
+    velocity_publisher = nh.advertise<geometry_msgs::Twist>("/cmd_vel",10);
+
     ros::Subscriber sub = nh.subscribe("odometry/filtered",10,OdomCallback);
-	ros::Subscriber sub2 = nh.subscribe("/move_base/global_costmap/costmap", 10, saveMap); // costmap
+    ros::Subscriber sub2 = nh.subscribe("/move_base/global_costmap/costmap", 10, saveMap); // costmap
     ros::Rate rate(10);
     rate.sleep();
     ros::spinOnce();
 
     if (!requestMap(nh))
         exit(-1);
-    
     return 0;
 }
 
@@ -369,12 +379,25 @@ void readMap(const nav_msgs::OccupancyGrid& map, ros::NodeHandle &nh){
     
     int midFrontier = startFrontier[bigFrontier[0]] + ceil ((endFrontier[bigFrontier[0]] - startFrontier[bigFrontier[0]]) / 2);
 
-        ROS_INFO("midFrontier = %d", midFrontier);
-                    ziel_map_frame_x = grid_cell_x[midFrontier] * map.info.resolution + map.info.origin.position.x;
-                    ziel_map_frame_y = grid_cell_y[midFrontier] * map.info.resolution + map.info.origin.position.y;
-                    mark_pos_x = ziel_map_frame_x;
-                    mark_pos_y = ziel_map_frame_y;
-sendGoal(mark_pos_x, mark_pos_y, 1.0);
+    ROS_INFO("midFrontier = %d", midFrontier);
+    ziel_map_frame_x = grid_cell_x[midFrontier] * map.info.resolution + map.info.origin.position.x;
+    ziel_map_frame_y = grid_cell_y[midFrontier] * map.info.resolution + map.info.origin.position.y;
+    mark_pos_x = ziel_map_frame_x;
+    mark_pos_y = ziel_map_frame_y;
+
+    double diff_x = map_frame_x - ziel_map_frame_x;
+    double diff_y = map_frame_y - ziel_map_frame_y;
+    ROS_INFO("diff_x = %f", diff_x);
+    ROS_INFO("diff_y = %f", diff_y);
+    
+    double distance_to_Frontier = sqrt( pow(diff_x,2) + pow(diff_y,2) );
+    ROS_INFO("distance_to_Frontier = %f", distance_to_Frontier);
+    
+    if(distance_to_Frontier < 6){
+        ROS_INFO("ich rotiere!");
+        rotate();
+    }
+    else sendGoal(mark_pos_x, mark_pos_y, 1.0);
 }
 
 // Read out the odometry _________________________________________________________
@@ -390,11 +413,11 @@ void OdomCallback(const nav_msgs::Odometry::ConstPtr& msg){
 // Finde alle Frontiers nach der Neumann-Nachbarschaft (ToDo: auf Moore-Nachbarschaft ändern)
 void findFrontiers(){
     unsigned int k = 0;
-    // for(int i = grid.size() - 1; i>= 0 ; i--){
-    //     for(int j = 0; j < grid[0].size(); j++){
+    for(int i = grid.size() - 1; i>= 0 ; i--){      // durchsuche ganze Karte
+        for(int j = 0; j < grid[0].size(); j++){
 
-    for(int i = y_such_max; i >= y_such_min; i--){
-        for(int j = x_such_min; j < x_such_max; j++){
+    // for(int i = y_such_max; i >= y_such_min; i--){       // durchsuche nur in der Such-Region
+    //     for(int j = x_such_min; j < x_such_max; j++){
                 if((grid[i][j] == 0) && (grid_vec[i][j] == 0)){ //TODO: was wenn es keine Costmap gibt?! -> dann auch kein grid_vec -> Abfrage machen
                         // grid_cell_x[k] = j;
                         // grid_cell_y[k] = i;
@@ -515,4 +538,22 @@ void sendGoal(double position_x, double position_y, double orientation_w){
         ROS_INFO("We didn't make it :-(");
 
 
+}
+
+
+
+void rotate(){
+    int counter = 0;
+    ros::Rate loop_rate(10);
+    geometry_msgs::Twist vel_msg;
+    do{
+        vel_msg.angular.z = 1;
+        counter++;
+        velocity_publisher.publish(vel_msg);
+        ros::spinOnce();
+        loop_rate.sleep();
+        ROS_INFO("in rotate schleife");
+    }while(counter < 100);
+    vel_msg.angular.z = 0;
+    velocity_publisher.publish(vel_msg);
 }
