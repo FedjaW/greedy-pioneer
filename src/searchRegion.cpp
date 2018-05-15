@@ -9,7 +9,7 @@
 #include "geometry_msgs/Twist.h" // für die Rotation
 ros::Publisher velocity_publisher;  // für die Rotation
 
-
+#include <nav_msgs/GetPlan.h>
 
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -18,6 +18,7 @@ using namespace std;
 
 void rotate();
 
+// bool requestPlan(ros::Nodehandle &nh);
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 void sendGoal(double position_x, double position_y, double orientation_w);
@@ -175,7 +176,31 @@ ROS_INFO("Received a %d X %d Costmap @ %.3f m/px\n",
 ROS_INFO("costmap map_set");
 }
 
-
+//_____________________________________________Make Plan
+// bool requestPlan(ros::Nodehandle &nh){
+//
+//   nav_msgs::GetPlan::Request req;
+//   nav_msgs::GetPlan::Response res;
+//
+//
+//   while (!ros::service::waitForService("/move_base/make_plan", ros::Duration(3.0))){ 
+//     ROS_INFO("Wating for service make_plan to become available\n");
+//   }
+//
+//   ROS_INFO("Requesting the plan..");
+//   ros::ServiceClient mapClient = nh.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
+//   
+//   if(planClient.call(req, res)){
+//     ROS_INFO("hurra");
+//     return true;
+//   }
+//   else{
+//     ROS_ERROR("Failed to call plan service\n");
+//     return false;
+//   }
+//
+// }
+//______________________________________________
 
 
 bool requestMap(ros::NodeHandle &nh){
