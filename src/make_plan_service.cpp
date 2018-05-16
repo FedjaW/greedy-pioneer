@@ -3,8 +3,28 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <visualization_msgs/MarkerArray.h>
 
+#include "geometry_msgs/Twist.h"
+#include "nav_msgs/Odometry.h"
+
+#include "tf/transform_broadcaster.h"
+#include "angles/angles.h"
+#include "math.h"
+
+
+const double PI = 3.1415;
+
 void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos);
 double getDistance(double x1,double y1,double x2,double y2);
+void rotate(ros::NodeHandle &nh, double goal_pos_x, double goal_pos_y, double tolerance);
+void poseCallback(const nav_msgs::Odometry::ConstPtr& pose_message);
+double radiand2degrees(double angle_in_radiand);
+double degrees2rad(double angle_in_degrees);
+
+
+double yaw_global;
+double jackal_position_x;
+double jackal_position_y;
+
 
 int main(int argc, char** argv)
 {
@@ -26,8 +46,8 @@ int main(int argc, char** argv)
     Goal.header.seq = 0;
     Goal.header.stamp = ros::Time(0);
     Goal.header.frame_id = "/map";
-    Goal.pose.position.x = -3;
-    Goal.pose.position.y = -0;
+    Goal.pose.position.x = 7;
+    Goal.pose.position.y = 0;
     Goal.pose.position.z = 0.0;
     Goal.pose.orientation.x = 0.0;
     Goal.pose.orientation.y = 0.0;
@@ -52,7 +72,7 @@ int main(int argc, char** argv)
         myPose = srv.response.plan.poses[i];
         float myX = myPose.pose.position.x;
         float myY = myPose.pose.position.y;
-        ROS_INFO("x = %f, y = %f", myX, myY);
+        // ROS_INFO("x = %f, y = %f", myX, myY);
         if(i == 0){
             myX_old = myX;
             myY_old = myY;
@@ -65,6 +85,8 @@ int main(int argc, char** argv)
 
     ROS_INFO("Distanz = %f", distance);
     setMarkerArray(nh, vizPos);
+
+    rotate(nh, 5, 5, 0.05);
 }
 
 
@@ -109,7 +131,75 @@ void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos
     ROS_INFO("MarkerArray wurde gesetzt");
 }
 
-
+//__________________________________DISTANCE
 double getDistance(double x1,double y1,double x2,double y2){
         return sqrt(pow((x2-x1),2)+pow((y2-y1),2));
+}
+
+
+//___________________________________ROTATE
+void rotate(ros::NodeHandle &nh, double goal_pos_x, double goal_pos_y, double tolerance){
+
+    ros::Publisher velocity_publisher = nh.advertise<geometry_msgs::Twist>("/cmd_vel",10);  
+    ros::Subscriber pose_subscriber = nh.subscribe("/odometry/filtered" , 5 , poseCallback);
+    ros::Rate loop_rate(10);
+    geometry_msgs::Twist vel_msg;
+    double steering_angle;
+    int steering_angle_normalized_deg;
+    double steering_angle_normalized_rad;
+    double angle_difference;
+
+    do{
+        steering_angle = atan2(goal_pos_y - jackal_position_y, goal_pos_x - jackal_position_x);
+        steering_angle_normalized_deg = ((int) radiand2degrees(steering_angle)+360)%360;
+        steering_angle_normalized_rad = degrees2rad(steering_angle_normalized_deg);
+        angle_difference = steering_angle_normalized_rad - yaw_global;
+
+        // ROS_INFO("steering_angle %f", steering_angle);
+        // ROS_INFO("yaw_global %f", yaw_global);
+        vel_msg.angular.z = angle_difference; 
+        ROS_INFO("angular.z = %f", vel_msg.angular.z);
+        ROS_INFO("angle diff = %f", angle_difference);
+        if(vel_msg.angular.z > 2) vel_msg.angular.z = 2;
+        if(vel_msg.angular.z < -2) vel_msg.angular.z = -2;
+
+        velocity_publisher.publish(vel_msg);
+        ros::spinOnce();
+        loop_rate.sleep();
+
+    }while(fabs(angle_difference) > tolerance);
+
+    vel_msg.angular.z = 0;
+    velocity_publisher.publish(vel_msg);
+    ROS_INFO("Rotation done");
+}
+
+
+void poseCallback(const nav_msgs::Odometry::ConstPtr& pose_message){
+
+        double roll, pitch, yaw;
+
+        // this will initiate the quaternion variable which contain x,y,z and w values;
+        tf::Quaternion quater;
+        // this will cnvert quaternion msg to quaternion
+        tf::quaternionMsgToTF(pose_message->pose.pose.orientation, quater);
+        // this will get the quaternion matrix and represent it in Euler angle
+        tf::Matrix3x3(quater).getRPY(roll, pitch, yaw);
+        // this normalize the angle between 0 and 2*PI
+        yaw_global = angles::normalize_angle_positive(yaw);
+
+        jackal_position_x = pose_message->pose.pose.position.x;
+        jackal_position_y = pose_message->pose.pose.position.y;
+
+}
+
+
+double radiand2degrees(double angle_in_radiand){
+
+        return angle_in_radiand * 180 / PI;
+}
+
+double degrees2rad(double angle_in_degrees){
+
+        return angle_in_degrees * PI/180;
 }
