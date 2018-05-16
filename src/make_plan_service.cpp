@@ -4,6 +4,7 @@
 #include <visualization_msgs/MarkerArray.h>
 
 void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos);
+double getDistance(double x1,double y1,double x2,double y2);
 
 int main(int argc, char** argv)
 {
@@ -25,8 +26,8 @@ int main(int argc, char** argv)
     Goal.header.seq = 0;
     Goal.header.stamp = ros::Time(0);
     Goal.header.frame_id = "/map";
-    Goal.pose.position.x = -5;
-    Goal.pose.position.y = -1;
+    Goal.pose.position.x = -3;
+    Goal.pose.position.y = -0;
     Goal.pose.position.z = 0.0;
     Goal.pose.orientation.x = 0.0;
     Goal.pose.orientation.y = 0.0;
@@ -42,10 +43,9 @@ int main(int argc, char** argv)
     ROS_INFO("Plan size: %d", srv.response.plan.poses.size());
 
 
-
-
     std::vector<geometry_msgs::Pose> vizPos;
-    int id = 0;
+    double distance;
+    float myX_old, myY_old = 0;
     int path_size = srv.response.plan.poses.size();
     geometry_msgs::PoseStamped myPose;
     for(int i = 0; i < path_size-1; i++){
@@ -53,10 +53,17 @@ int main(int argc, char** argv)
         float myX = myPose.pose.position.x;
         float myY = myPose.pose.position.y;
         ROS_INFO("x = %f, y = %f", myX, myY);
-
+        if(i == 0){
+            myX_old = myX;
+            myY_old = myY;
+        }
+        distance = distance + getDistance(myX_old, myY_old, myX, myY);
+        myX_old = myX;
+        myY_old = myY;
         vizPos.push_back(myPose.pose);
     }
 
+    ROS_INFO("Distanz = %f", distance);
     setMarkerArray(nh, vizPos);
 }
 
@@ -65,7 +72,6 @@ int main(int argc, char** argv)
 
 void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos){
     
-// ______________________________________ visualization
     ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 20);
     
     visualization_msgs::MarkerArray markers_msg;
@@ -101,4 +107,9 @@ void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos
     }
     marker_array_publisher.publish(markers_msg);
     ROS_INFO("MarkerArray wurde gesetzt");
+}
+
+
+double getDistance(double x1,double y1,double x2,double y2){
+        return sqrt(pow((x2-x1),2)+pow((y2-y1),2));
 }
