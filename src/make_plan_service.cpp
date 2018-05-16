@@ -3,12 +3,12 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <visualization_msgs/MarkerArray.h>
 
+void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos);
+
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "make_plan_service");
     ros::NodeHandle nh;
-
-
 
     geometry_msgs::PoseStamped Start;
     Start.header.seq = 0;
@@ -42,32 +42,9 @@ int main(int argc, char** argv)
     ROS_INFO("Plan size: %d", srv.response.plan.poses.size());
 
 
-// ______________________________________visualization
-    ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 20);
-    
-    visualization_msgs::MarkerArray markers_msg;
-    std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
-    visualization_msgs::Marker m;
 
 
-    m.header.frame_id = "/map";
-    m.header.stamp = ros::Time::now();
-    m.ns = "basic_shapes";
-    m.scale.x = 1.0;
-    m.scale.y = 1.0;
-    m.scale.z = 1.0;
-    m.color.r = 0;
-    m.color.g = 0;
-    m.color.b = 1;
-    m.color.a = 1;
-    // m.lifetime = ros::Duration(0);
-    // m.frame_locked = true;
-
-    m.scale.x = 0.1;
-    m.scale.y = 0.1;
-    m.scale.z = 0.1;
-
-
+    std::vector<geometry_msgs::Pose> vizPos;
     int id = 0;
     int path_size = srv.response.plan.poses.size();
     geometry_msgs::PoseStamped myPose;
@@ -76,25 +53,52 @@ int main(int argc, char** argv)
         float myX = myPose.pose.position.x;
         float myY = myPose.pose.position.y;
         ROS_INFO("x = %f, y = %f", myX, myY);
-        // setMarker(nh,myX,myY,id);
-        //
-        m.action = visualization_msgs::Marker::ADD;
-        m.type = visualization_msgs::Marker::SPHERE;
-        m.pose.position.x = myX;
-        m.pose.position.y = myY;
-        m.id = id;
-        markers.push_back(m);
 
-        ++id;
+        vizPos.push_back(myPose.pose);
     }
 
-    // marker_array_publisher.publish(markers_msg);
-    // ROS_INFO("MarkerArray wurde gesetzt");
+    setMarkerArray(nh, vizPos);
+}
+
+
+
+
+void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos){
+    
+// ______________________________________ visualization
+    ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 20);
+    
+    visualization_msgs::MarkerArray markers_msg;
+    std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
+    visualization_msgs::Marker m;
+
+    m.action = visualization_msgs::Marker::ADD;
+    m.type = visualization_msgs::Marker::SPHERE;
+
+    m.header.frame_id = "/map";
+    m.header.stamp = ros::Time::now();
+    m.ns = "basic_shapes";
+    m.scale.x = 0.02;
+    m.scale.y = 0.02;
+    m.scale.z = 0.02;
+    m.color.r = 0;
+    m.color.g = 0;
+    m.color.b = 1;
+    m.color.a = 1;
+    // m.lifetime = ros::Duration(0);
+    // m.frame_locked = true;
+    int id = 0;
+    for(int i = 0; i < vizPos.size(); i++){
+        m.pose.position.x = vizPos[i].position.x;
+        m.pose.position.y = vizPos[i].position.y;
+        m.id = id;
+        markers.push_back(m);
+        ++id;
+    }
     while (marker_array_publisher.getNumSubscribers() < 1){
         ROS_WARN_ONCE("Please create a subscriber to the marker");
-        sleep(0.1);
+        sleep(0.2);
     }
     marker_array_publisher.publish(markers_msg);
     ROS_INFO("MarkerArray wurde gesetzt");
 }
-
