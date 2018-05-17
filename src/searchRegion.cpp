@@ -207,8 +207,9 @@ bool requestMap(ros::NodeHandle &nh){
 
   nav_msgs::GetMap::Request req;
   nav_msgs::GetMap::Response res;
-
-  while (!ros::service::waitForService("dynamic_map", ros::Duration(3.0))){ // dynamic map ist a service provided by gmapping: dynamic_map(mav_msgs/GetMap)
+  //
+// dynamic map ist a service provided by gmapping: dynamic_map(mav_msgs/GetMap)
+  while (!ros::service::waitForService("dynamic_map", ros::Duration(3.0))){ 
     ROS_INFO("Wating for service dynamic map to become available\n");
   }
 
