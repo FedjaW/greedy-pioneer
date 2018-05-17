@@ -1,11 +1,12 @@
 #include "myGetMap.h"
+#include <ros/ros.h>
 
 //_____________________default constructor
-myGetMap::myGetMap(){};
+MYGETMAP::MYGETMAP(){};
 
 
 //_________________________requestMap
-nav_msgs::OccupancyGrid requestMap(ros::NodeHandle &nh){
+nav_msgs::OccupancyGrid MYGETMAP::requestMap(ros::NodeHandle &nh){
     nav_msgs::GetMap::Request req;
     nav_msgs::GetMap::Response res;
 
@@ -29,7 +30,7 @@ nav_msgs::OccupancyGrid requestMap(ros::NodeHandle &nh){
 }
 
 //_______________________________readMap
-std::vector<std::vector<int> > readMap(const nav_msgs::OccupancyGrid& map){
+std::vector<std::vector<int> > MYGETMAP::readMap(const nav_msgs::OccupancyGrid& map){
     ROS_INFO("Received a %d X %d Map @ %.3f m/px\n", 
             map.info.width,
             map.info.height,
@@ -61,17 +62,3 @@ std::vector<std::vector<int> > readMap(const nav_msgs::OccupancyGrid& map){
 }
 
 
-//_______________________________Main
-int main (int argc, char **argv) {
-    ros::init(argc, argv, "myGetMap");
-    ros::NodeHandle nh;
-    ROS_INFO("Testpunnkt 1");
-    nav_msgs::OccupancyGrid grid = requestMap(nh);
-    ROS_INFO("Testpunnkt 2");
-    std::vector<std::vector<int> > gridMap = readMap(grid);
-    ROS_INFO("Testpunnkt 3");
-    ROS_INFO("gridMap[5][5] = %d", gridMap[5][5]);
-    ros::spinOnce();
-
-    return 0;
-}

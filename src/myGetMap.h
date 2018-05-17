@@ -7,12 +7,11 @@
 
 
 
-class myGetMap{
+class MYGETMAP{
 
 
     public:
-        myGetMap();
-
+      MYGETMAP();
         nav_msgs::OccupancyGrid requestMap(ros::NodeHandle &nh);
         std::vector<std::vector<int> > readMap(const nav_msgs::OccupancyGrid& map);
     
