@@ -4,9 +4,11 @@
 //_____________________default constructor
 MYGETMAP::MYGETMAP(){};
 
+    robotPose myRobot;
 
 //_________________________requestMap
 nav_msgs::OccupancyGrid MYGETMAP::requestMap(ros::NodeHandle &nh){
+
     nav_msgs::GetMap::Request req;
     nav_msgs::GetMap::Response res;
 
@@ -36,12 +38,12 @@ std::vector<std::vector<int> > MYGETMAP::readMap(const nav_msgs::OccupancyGrid& 
             map.info.height,
             map.info.resolution);
 
-    ROS_INFO("Origin.Position x= %.3f", map.info.origin.position.x);
-    ROS_INFO("Origin.Position y= %.3f", map.info.origin.position.y);
+    // ROS_INFO("Origin.Position x= %.3f", map.info.origin.position.x);
+    // ROS_INFO("Origin.Position y= %.3f", map.info.origin.position.y);
     int rows = map.info.height;
     int cols = map.info.width;
-    ROS_INFO("map.info.height = %d", map.info.height);
-    ROS_INFO("map.info.width = %d", map.info.width);
+    // ROS_INFO("map.info.height = %d", map.info.height);
+    // ROS_INFO("map.info.width = %d", map.info.width);
     double mapResolution = map.info.resolution;
 
     std::vector<std::vector<int> > grid;
@@ -60,11 +62,11 @@ std::vector<std::vector<int> > MYGETMAP::readMap(const nav_msgs::OccupancyGrid& 
         }
     }
     return grid;
-
 }
 
 
 // TODO: Jakob fragen wegen dem Ausdruck: ist geometry_msgs::Point ein namespace? woran erkenne ich was es genau ist? könnte ja auch ein struct sein weil Point ein datentyp ist?! oder ist point eine klasse?
+//___________________ von grid zu kartesischen Koordianten 
 geometry_msgs::Point MYGETMAP::grid2Kartesisch(const nav_msgs::OccupancyGrid& map, int row, int col){
 
     geometry_msgs::Point point;
@@ -75,10 +77,7 @@ geometry_msgs::Point MYGETMAP::grid2Kartesisch(const nav_msgs::OccupancyGrid& ma
     return point;
 }
 
-
-
-
-
+//___________________ von kartesischen Koordianten zu grid
 gridCell MYGETMAP::kartesisch2grid(const nav_msgs::OccupancyGrid& map, double x, double y){
 
     gridCell cell;
@@ -90,6 +89,43 @@ gridCell MYGETMAP::kartesisch2grid(const nav_msgs::OccupancyGrid& map, double x,
 }
 
 
+
+
+robotPose MYGETMAP::getRobotPos(ros::NodeHandle &nh){
+    
+    ROS_INFO("getRobotPos Funktionsaufruf");
+    ros::Subscriber sub = nh.subscribe("odometry/filtered",1, OdomCallback);
+    
+    ros::Rate rate(10);
+    rate.sleep();
+    ros::spinOnce();
+
+    ROS_INFO("getRobotPos Funktionsende");
+    return myRobot;
+}
+
+
+
+// Read out the odometry _________________________________________________________
+void OdomCallback(const nav_msgs::Odometry::ConstPtr& pose_msg){
+
+    ROS_INFO("OdomCallback aufruf");
+
+    double roll, pitch, yaw;
+    // this will initiate the quaternion variable which contain x,y,z and w values;
+    tf::Quaternion quater;
+    // this will cnvert quaternion msg to quaternion
+    tf::quaternionMsgToTF(pose_msg->pose.pose.orientation, quater);
+    // this will get the quaternion matrix and represent it in Euler angle
+    tf::Matrix3x3(quater).getRPY(roll, pitch, yaw);
+    // this normalize the angle between 0 and 2*PI
+    myRobot.yaw = angles::normalize_angle_positive(yaw);
+
+    myRobot.x = pose_msg->pose.pose.position.x;
+    myRobot.y = pose_msg->pose.pose.position.y;
+    // ROS_INFO("x: %f, y: %f",map_frame_x ,map_frame_y );
+    ROS_INFO("odom callback");
+}
 
 
 

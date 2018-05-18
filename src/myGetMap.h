@@ -6,18 +6,28 @@
 #include <vector>
 #include <geometry_msgs/Point.h>
 
+#include <nav_msgs/Odometry.h>
+#include "tf/transform_broadcaster.h"
+#include "angles/angles.h"
 
 struct gridCell{
 
-        int row;
-        int col;
+    int row;
+    int col;
+};
+
+
+struct robotPose{
+    double x;
+    double y;
+    double yaw;
 };
 
 
 class MYGETMAP{
 
     public:
-
+        
         MYGETMAP();
 
         nav_msgs::OccupancyGrid requestMap(ros::NodeHandle &nh);
@@ -28,8 +38,14 @@ class MYGETMAP{
         geometry_msgs::Point grid2Kartesisch(const nav_msgs::OccupancyGrid& map, int row, int col);
 
         gridCell kartesisch2grid(const nav_msgs::OccupancyGrid& map, double x, double y);
+
+        robotPose getRobotPos(ros::NodeHandle &nh);
+
+    // private:
+
 };
 
+    void OdomCallback(const nav_msgs::Odometry::ConstPtr& pose_msg);
 
 
 #endif
