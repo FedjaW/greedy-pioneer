@@ -1,10 +1,10 @@
 #include "myGetMap.h"
-#include <ros/ros.h>
+// #include <ros/ros.h>
 
 //_____________________default constructor
 MYGETMAP::MYGETMAP(){};
 
-    robotPose myRobot;
+robotPose myRobot;
 
 //_________________________requestMap
 nav_msgs::OccupancyGrid MYGETMAP::requestMap(ros::NodeHandle &nh){
@@ -94,7 +94,7 @@ gridCell MYGETMAP::kartesisch2grid(const nav_msgs::OccupancyGrid& map, double x,
 robotPose MYGETMAP::getRobotPos(ros::NodeHandle &nh){
     
     ROS_INFO("getRobotPos Funktionsaufruf");
-    ros::Subscriber sub = nh.subscribe("odometry/filtered",1, OdomCallback);
+    ros::Subscriber sub = nh.subscribe("odometry/filtered",1, &MYGETMAP::OdomCallback, this);
     
     ros::Rate rate(10);
     rate.sleep();
@@ -107,7 +107,7 @@ robotPose MYGETMAP::getRobotPos(ros::NodeHandle &nh){
 
 
 // Read out the odometry _________________________________________________________
-void OdomCallback(const nav_msgs::Odometry::ConstPtr& pose_msg){
+void MYGETMAP::OdomCallback(const nav_msgs::Odometry::ConstPtr& pose_msg){
 
     ROS_INFO("OdomCallback aufruf");
 

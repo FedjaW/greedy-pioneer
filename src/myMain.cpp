@@ -1,4 +1,5 @@
 #include "myGetMap.h"
+#include "visualize.h"
 // #include <geometry_msgs/Point.h>
 
 
@@ -32,13 +33,23 @@ int main (int argc, char **argv) {
     // ROS_INFO("cell col = %d", myCell.col);
     
     robotPose myRobot;
+    std::vector<geometry_msgs::Pose> myVizPos;
+    geometry_msgs::Pose dummyPos;
+
     myRobot = myMap.getRobotPos(nh);
 
     ROS_INFO("myRobot.x = %f", myRobot.x);
     ROS_INFO("myRobot.y = %f", myRobot.y);
     ROS_INFO("myRobot.yaw = %f", myRobot.yaw);
+        
+    dummyPos.position.x = myRobot.x;
+    dummyPos.position.y = myRobot.y;
 
+    myVizPos.push_back(dummyPos);
+    
+    Visualize myVisualize;
 
+    myVisualize.setMarkerArray(nh, myVizPos);
 
     // ros::spin();
 
