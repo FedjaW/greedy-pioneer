@@ -130,7 +130,6 @@ void MyGetMap::OdomCallback(const nav_msgs::Odometry::ConstPtr& pose_msg){
 }
 
 // ----------------------------------------------------------------------------Costmap
-
 std::vector<std::vector<int> > MyGetMap::getCostmap(ros::NodeHandle &nh){
     
     ROS_INFO("getCostmap Funktionsaufruf");
