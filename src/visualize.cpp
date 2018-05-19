@@ -3,9 +3,9 @@
 
 
 
-Visualize::Visualize(){};
+Visualizer::Visualizer(){};
 
-void Visualize::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos){
+void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos){
     ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 20);
 
     visualization_msgs::MarkerArray markers_msg;
@@ -22,8 +22,8 @@ void Visualize::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::P
     m.scale.y = 0.02;
     m.scale.z = 0.02;
     m.color.r = 0;
-    m.color.g = 0;
-    m.color.b = 1;
+    m.color.g = 1;
+    m.color.b = 0;
     m.color.a = 1;
     // m.lifetime = ros::Duration(0);
     // m.frame_locked = true;

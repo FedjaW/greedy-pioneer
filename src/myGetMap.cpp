@@ -2,12 +2,13 @@
 // #include <ros/ros.h>
 
 //_____________________default constructor
-MYGETMAP::MYGETMAP(){};
+MyGetMap::MyGetMap(){};
 
-robotPose myRobot;
+robotPose myRobot; // nur damit ich den void callback returnen kann!
+std::vector<std::vector<int> > grid_vec;  // hier der gleiche mist! TODO: ÄNDERN"
 
 //_________________________requestMap
-nav_msgs::OccupancyGrid MYGETMAP::requestMap(ros::NodeHandle &nh){
+nav_msgs::OccupancyGrid MyGetMap::requestMap(ros::NodeHandle &nh){
 
     nav_msgs::GetMap::Request req;
     nav_msgs::GetMap::Response res;
@@ -32,7 +33,7 @@ nav_msgs::OccupancyGrid MYGETMAP::requestMap(ros::NodeHandle &nh){
 }
 
 //_______________________________readMap
-std::vector<std::vector<int> > MYGETMAP::readMap(const nav_msgs::OccupancyGrid& map){
+std::vector<std::vector<int> > MyGetMap::readMap(const nav_msgs::OccupancyGrid& map){
     ROS_INFO("Received a %d X %d Map @ %.3f m/px", 
             map.info.width,
             map.info.height,
@@ -67,7 +68,7 @@ std::vector<std::vector<int> > MYGETMAP::readMap(const nav_msgs::OccupancyGrid& 
 
 // TODO: Jakob fragen wegen dem Ausdruck: ist geometry_msgs::Point ein namespace? woran erkenne ich was es genau ist? könnte ja auch ein struct sein weil Point ein datentyp ist?! oder ist point eine klasse?
 //___________________ von grid zu kartesischen Koordianten 
-geometry_msgs::Point MYGETMAP::grid2Kartesisch(const nav_msgs::OccupancyGrid& map, int row, int col){
+geometry_msgs::Point MyGetMap::grid2Kartesisch(const nav_msgs::OccupancyGrid& map, int row, int col){
 
     geometry_msgs::Point point;
 
@@ -78,7 +79,7 @@ geometry_msgs::Point MYGETMAP::grid2Kartesisch(const nav_msgs::OccupancyGrid& ma
 }
 
 //___________________ von kartesischen Koordianten zu grid
-gridCell MYGETMAP::kartesisch2grid(const nav_msgs::OccupancyGrid& map, double x, double y){
+gridCell MyGetMap::kartesisch2grid(const nav_msgs::OccupancyGrid& map, double x, double y){
 
     gridCell cell;
     
@@ -90,13 +91,14 @@ gridCell MYGETMAP::kartesisch2grid(const nav_msgs::OccupancyGrid& map, double x,
 
 
 
-
-robotPose MYGETMAP::getRobotPos(ros::NodeHandle &nh){
+robotPose MyGetMap::getRobotPos(ros::NodeHandle &nh){
     
     ROS_INFO("getRobotPos Funktionsaufruf");
-    ros::Subscriber sub = nh.subscribe("odometry/filtered",1, &MYGETMAP::OdomCallback, this);
+    ros::Subscriber sub = nh.subscribe("odometry/filtered",1, &MyGetMap::OdomCallback, this);
     
     ros::Rate rate(10);
+   	rate.sleep(); // Warte lange genug, sonst werden keine Daten empfangen
+    rate.sleep();
     rate.sleep();
     ros::spinOnce();
 
@@ -107,7 +109,7 @@ robotPose MYGETMAP::getRobotPos(ros::NodeHandle &nh){
 
 
 // Read out the odometry _________________________________________________________
-void MYGETMAP::OdomCallback(const nav_msgs::Odometry::ConstPtr& pose_msg){
+void MyGetMap::OdomCallback(const nav_msgs::Odometry::ConstPtr& pose_msg){
 
     ROS_INFO("OdomCallback aufruf");
 
@@ -127,23 +129,55 @@ void MYGETMAP::OdomCallback(const nav_msgs::Odometry::ConstPtr& pose_msg){
     ROS_INFO("odom callback");
 }
 
+// ----------------------------------------------------------------------------Costmap
+
+std::vector<std::vector<int> > MyGetMap::getCostmap(ros::NodeHandle &nh){
+    
+    ROS_INFO("getCostmap Funktionsaufruf");
+    ros::Subscriber sub = nh.subscribe("/move_base/global_costmap/costmap",
+     									10, 
+     									&MyGetMap::costmapCallback, this); // costmap
+
+    ros::Rate rate(10);
+    rate.sleep();// Warte lange genug, sonst werden keine Daten empfangen
+    rate.sleep();
+    rate.sleep();
+    ros::spinOnce();
+
+    ROS_INFO("getCostmap Funktionsende");
+    return grid_vec;
+}
 
 
+ void MyGetMap::costmapCallback(const nav_msgs::OccupancyGrid& costmap)
+{
 
+	
+	ROS_INFO("Received a %d X %d Costmap @ %.3f m/px\n", 
+		costmap.info.width,
+		costmap.info.height,
+		costmap.info.resolution);
 
+	int rows_cost = costmap.info.height;
+	int cols_cost = costmap.info.width;
+	double mapResolution_cost = costmap.info.resolution;
 
+   // Dynamically resize the Grid
+	grid_vec.resize(rows_cost);
+	for (int i = 0; i < rows_cost ; i++){
+		grid_vec[i].resize(cols_cost);
+	}
 
+	int currCell = 0;
+	for (int i = 0; i < rows_cost; i++){
+		for(int j = 0; j < cols_cost; j++){
+			grid_vec[i][j] = costmap.data[currCell];
+			currCell++;
+		}
+	}
 
-
-
-
-
-
-
-
-
-
-
+	ROS_INFO("costmap map_set");
+}
 
 
 

@@ -6,9 +6,9 @@
 
 
 
-class Visualize{
+class Visualizer{
     public:
-        Visualize();
+        Visualizer();
         void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos);
         // void setMarker();
 };
