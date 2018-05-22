@@ -63,6 +63,15 @@ int main (int argc, char **argv) {
     //dummyPos.position.x = myRobot.x;
     //dummyPos.position.y = myRobot.y;
 
+
+    std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
+    std::vector<std::vector<gridCell> > frontier_list = frontierCellNhood(frontierCells);
+
+    
+    for(auto& frontier : frontier_list) {
+        for(frontier[i] < )
+
+#if 0
     std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
     // Ohne das & (alias) funktinoert es nicht richtig! Warum ist das so???
     int c = 0;
@@ -76,9 +85,13 @@ int main (int argc, char **argv) {
 
     std::cout << "c = " << c << std::endl;
     std::cout << "myVizPos.Size() = " << myVizPos.size() << std::endl;
+#endif 
     
+
+
     Visualizer myVisualize;
     myVisualize.setMarkerArray(nh, myVizPos);
+
 
     // ros::spin();
 

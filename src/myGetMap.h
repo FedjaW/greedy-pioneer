@@ -20,7 +20,7 @@ struct gridCell{
 
 
 // struct robotPose{
-//     double x;
+//     double x;
 //     double y;
 //     double yaw;
 // };

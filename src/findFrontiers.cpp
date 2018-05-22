@@ -1,11 +1,12 @@
 #include <iostream>
 #include "findFrontiers.h"
+#include <algorithm>
 
 
 // searchRegion is for now the entiry Map
 std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchRegion) {
 int k = 0;
-    std::vector<gridCell> frontierCell;
+    std::vector<gridCell> frontierCells;
     gridCell myFrontierCell;
 
     for(int i = searchRegion.size() - 1; i>= 0 ; i--){      // durchsuche ganze Karte
@@ -16,52 +17,90 @@ int k = 0;
                 if(searchRegion[i+1][j] == -1){ // prüfen ob der Nachbar unbekannt ist
                     myFrontierCell.row = j;
                     myFrontierCell.col = i;
-                    frontierCell.push_back(myFrontierCell);
+                    frontierCells.push_back(myFrontierCell);
                     std::cout << "frontier rechts: row " << j << " / col " << i << std::endl;
-                    // ROS_INFO("frontier rechts");
-                    // ROS_INFO("frontier [%d]: x = %d",k, j);
-                    // ROS_INFO("frontier [%d]: y = %d",k, i);
-                    // ROS_INFO("--------------");
                     k++;
                 }
                 else if(searchRegion[i][j+1] == -1){
                     myFrontierCell.row = j;
                     myFrontierCell.col = i;
-                    frontierCell.push_back(myFrontierCell);
+                    frontierCells.push_back(myFrontierCell);
                     std::cout << "frontier oben: row " << j << " / col " << i << std::endl;
-                    // ROS_INFO("frontier oben");
-                    // ROS_INFO("frontier [%d]: x = %d",k, j);
-                    // ROS_INFO("frontier [%d]: y = %d",k, i);
-                    // ROS_INFO("--------------");
                     k++;
                 }
                 else if(searchRegion[i-1][j] == -1){
                     myFrontierCell.row = j;
                     myFrontierCell.col = i;
-                    frontierCell.push_back(myFrontierCell);
+                    frontierCells.push_back(myFrontierCell);
                     std::cout << "frontier links: row " << j << " / col " << i << std::endl;
-                    // ROS_INFO("frontier links");
-                    // ROS_INFO("frontier [%d]: x = %d",k, j);
-                    // ROS_INFO("frontier [%d]: y = %d",k, i);
-                    // ROS_INFO("--------------");
                     k++;
                 }
                 else if(searchRegion[i][j-1] == -1){
                     myFrontierCell.row = j;
                     myFrontierCell.col = i;
-                    frontierCell.push_back(myFrontierCell);
+                    frontierCells.push_back(myFrontierCell);
                     std::cout << "frontier unten: row " << j << " / col " << i << std::endl;
-                    // ROS_INFO("frontier unten");
-                    // ROS_INFO("frontier [%d]: x = %d",k, j);
-                    // ROS_INFO("frontier [%d]: y = %d",k, i);
-                    // ROS_INFO("--------------");
                     k++;
                 }
             }
         }
     }
-    std::cout << "k = " << k << std::endl;
-    return frontierCell;
+    std::cout << "#FrontierCells = " << k << std::endl;
+    return frontierCells;
 }
+
+
+
+std::vector<std::vector<gridCell> > frontierCellNhood(std::vector<gridCell> frontierCells) {
+
+    std::vector<int> visited;
+    std::vector<gridCell> frontier;
+    std::vector<std::vector<gridCell> > frontier_list;
+
+    for(int i = 0; i < frontierCells.size(); i++) {
+
+        for(int n = i+1; n < frontierCells.size(); n++) {
+
+            if( ! (std::find(visited.begin(), visited.end(), n) != visited.end()) ) {
+                if( abs(frontierCells[i].row - frontierCells[n].row <= 1) && abs(frontierCells[i].col - frontierCells[n].col <= 1) )  {
+                    visited.push_back(n);
+                    frontier.push_back(frontierCells[i]);
+                    frontier.push_back(frontierCells[n]);
+                }
+            }
+
+        }
+
+        // std::cout << "frontier.size() = "<< frontier.size() << std::endl;
+        if(frontier.size() >= 2) 
+            frontier_list.push_back(frontier);
+
+        frontier.clear();
+    }
+
+
+    std::cout << "frontier_list.size() = "<< frontier_list.size() << std::endl;
+    std::cout << "frontier_list[0][0] = "<< frontier_list[0][0].row << std::endl;
+    std::cout << "frontier_list[0][0] = "<< frontier_list[0][0].col << std::endl;
+    return frontier_list;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
