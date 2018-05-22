@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(greedy_pioneer)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   move_base_msgs
   actionlib
+  angles
 )
 
 ## System dependencies are found with CMake's conventions
@@ -112,7 +113,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES greedy_pioneer
-  CATKIN_DEPENDS costmap_2d geometry_msgs nav_msgs roscpp std_msgs tf visualization_msgs move_base_msgs actionlib
+  CATKIN_DEPENDS costmap_2d geometry_msgs nav_msgs roscpp std_msgs tf visualization_msgs move_base_msgs actionlib angles
 #  DEPENDS system_lib
 )
 
@@ -125,6 +126,7 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+#	include
 )
 
 ## Declare a C++ library
@@ -151,6 +153,23 @@ add_dependencies(sendGoal_example greedy_pioneer_generate_message_cpp)
 add_executable(searchRegion src/searchRegion.cpp)
 target_link_libraries(searchRegion ${catkin_LIBRARIES})
 add_dependencies(searchRegion greedy_pioneer_generate_message_cpp)
+
+add_executable(getCostmap2d src/getCostmap2d.cpp)
+target_link_libraries(getCostmap2d ${catkin_LIBRARIES})
+add_dependencies(getCostmap2d greedy_pioneer_generate_message_cpp)
+
+add_executable(make_plan_service src/make_plan_service.cpp)
+target_link_libraries(make_plan_service ${catkin_LIBRARIES})
+add_dependencies(make_plan_service greedy_pioneer_generate_message_cpp)
+
+add_executable(myGetMap src/myMain.cpp src/myGetMap.cpp src/visualize.cpp src/holyWatcher.cpp src/findFrontiers.cpp)
+add_dependencies(myGetMap greedy_pioneer_generate_message_cpp)
+target_link_libraries(myGetMap ${catkin_LIBRARIES})
+
+# add_executable(FrontierSearcher src/FrontierSearcher.cpp)
+# add_dependencies(FrontierSearcher greedy_pioneer_generate_message_cpp)
+# target_link_libraries(FrontierSearcher ${catkin_LIBRARIES})
+#
 
 
 ## Add cmake target dependencies of the library

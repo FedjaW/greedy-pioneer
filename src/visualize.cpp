@@ -3,7 +3,12 @@
 
 
 
-Visualizer::Visualizer(){};
+Visualizer::Visualizer() {};
+// Visualizer::Visualizer(double scale_x, double scale_y, double scale_z) {
+//     double scale_x_ = scale_x_;
+//     double scale_y_ = scale_y_;
+//     double scale_z_ = scale_z_;
+// }
 
 void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos){
     
@@ -20,9 +25,12 @@ void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::
     m.header.frame_id = "/map";
     m.header.stamp = ros::Time::now();
     m.ns = "basic_shapes";
-    m.scale.x = 0.04;
-    m.scale.y = 0.04;
-    m.scale.z = 0.04;
+    // m.scale.x = scale_x_;
+    // m.scale.y = scale_y_;
+    // m.scale.z = scale_z_;
+    m.scale.x = 0.02;
+    m.scale.y = 0.02;
+    m.scale.z = 0.02;
     m.color.r = 0;
     m.color.g = 1;
     m.color.b = 0;

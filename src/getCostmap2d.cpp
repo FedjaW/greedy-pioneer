@@ -16,21 +16,21 @@ vector<vector<int> > grid_vec;
 
 void saveMap(const nav_msgs::OccupancyGrid& grid)
 {
-		cur_grid = grid;
-		map_set = true;
-ROS_INFO("map_set");
+    cur_grid = grid;
+    map_set = true;
+    ROS_INFO("map_set");
 
 
-ROS_INFO("Received a %d X %d Map @ %.3f m/px\n", 
-                                                    cur_grid.info.width,
-                                                    cur_grid.info.height,
-                                                    cur_grid.info.resolution);
+    ROS_INFO("Received a %d X %d Map @ %.3f m/px\n", 
+            cur_grid.info.width,
+            cur_grid.info.height,
+            cur_grid.info.resolution);
 
     rows = cur_grid.info.height;
     cols = cur_grid.info.width;
     mapResolution = cur_grid.info.resolution;
 
-   // Dynamically resize the Grid
+    // Dynamically resize the Grid
     grid_vec.resize(rows);
     for (int i = 0; i < rows ; i++){
         grid_vec[i].resize(cols);
@@ -43,13 +43,13 @@ ROS_INFO("Received a %d X %d Map @ %.3f m/px\n",
             currCell++;
         }
     }
-printGridToFile();
+    printGridToFile();
 }
 
 
 
 
-void printGridToFile(){
+void printGridToFile() {
    ofstream gridFile;
    gridFile.open("grid.txt");
 
