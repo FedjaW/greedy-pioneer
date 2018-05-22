@@ -10,7 +10,9 @@ Visualizer::Visualizer() {};
 //     double scale_z_ = scale_z_;
 // }
 
-void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos){
+    int id = 0;
+
+void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos, int r, int g, int b){
     
     ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray>(
                                                                     "visualization_marker_array", 20);
@@ -28,16 +30,15 @@ void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::
     // m.scale.x = scale_x_;
     // m.scale.y = scale_y_;
     // m.scale.z = scale_z_;
-    m.scale.x = 0.02;
-    m.scale.y = 0.02;
-    m.scale.z = 0.02;
-    m.color.r = 0;
-    m.color.g = 1;
-    m.color.b = 0;
+    m.scale.x = 0.04;
+    m.scale.y = 0.04;
+    m.scale.z = 0.04;
+    m.color.r = r;
+    m.color.g = g;
+    m.color.b = b;
     m.color.a = 1;
     // m.lifetime = ros::Duration(0);
     // m.frame_locked = true;
-    int id = 0;
     for(int i = 0; i < vizPos.size(); i++){
         m.pose.position.x = vizPos[i].position.x;
         m.pose.position.y = vizPos[i].position.y;

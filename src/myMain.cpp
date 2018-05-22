@@ -8,7 +8,6 @@
 int main (int argc, char **argv) {
     ros::init(argc, argv, "myGetMap");
     ros::NodeHandle nh;
-     // ros::Subscriber sub = nh.subscribe("odometry/filtered",10,OdomCallback);
 
     ROS_INFO("Testpunnkt 1");
     std::thread watcherThread(startPositionWatcher);
@@ -63,13 +62,122 @@ int main (int argc, char **argv) {
     //dummyPos.position.x = myRobot.x;
     //dummyPos.position.y = myRobot.y;
 
-
     std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
+#if 0
+   gridCell dummyCells; 
+    
+    std::vector<gridCell> frontierCells;
+
+    dummyCells.row = 30;
+    dummyCells.col = 30;
+    frontierCells.push_back(dummyCells);
+    //-------------------------------------
+    dummyCells.row = 5;
+    dummyCells.col = 5;
+    frontierCells.push_back(dummyCells);
+
+    dummyCells.row = 3;
+    dummyCells.col = 3;
+    frontierCells.push_back(dummyCells);
+
+    dummyCells.row = 4;
+    dummyCells.col = 4;
+    frontierCells.push_back(dummyCells);
+    //-------------------------------------
+    dummyCells.row = 9;
+    dummyCells.col = 7;
+    frontierCells.push_back(dummyCells);
+    
+    dummyCells.row = 8;
+    dummyCells.col = 7;
+    frontierCells.push_back(dummyCells);
+
+    dummyCells.row = 10;
+    dummyCells.col = 8;
+    frontierCells.push_back(dummyCells);
+    //-------------------------------------
+    dummyCells.row = 100;
+    dummyCells.col = 100;
+    frontierCells.push_back(dummyCells);
+
+    dummyCells.row = 101;
+    dummyCells.col = 101;
+    frontierCells.push_back(dummyCells);
+
+    dummyCells.row = 99;
+    dummyCells.col = 99;
+    frontierCells.push_back(dummyCells);
+    //-------------------------------------
+    dummyCells.row = 6;
+    dummyCells.col = 6;
+    frontierCells.push_back(dummyCells);
+
+    std::cout << "sizeofvector = " << frontierCells.size() << std::endl;
+
     std::vector<std::vector<gridCell> > frontier_list = frontierCellNhood(frontierCells);
 
-    
+
     for(auto& frontier : frontier_list) {
-        for(frontier[i] < )
+        for(int i = 0; i < frontier.size(); i++) {
+            std::cout << "frontier[" <<i<< "]" << ".row = " << frontier[i].row << " / frontier[" <<i<< "]" << ".col = " << frontier[i].col << std::endl;
+        }
+    }
+
+#endif
+
+    std::vector<std::vector<gridCell> > frontier_list = frontierCellNhood(frontierCells);
+    Visualizer myVisualize;
+int id = 0;
+int r = 1;
+int g = 0;
+int b = 0;
+
+    for(auto& frontier : frontier_list) {
+        if((r == 1) && (g == 0) && (b == 0)) {
+            r = 0;
+            g = 1;
+            b = 0;
+        }
+        else if((r == 0) && (g == 1) && (b == 0)) {
+            r = 0;
+            g = 0;
+            b = 1;
+        }
+        else if((r == 0) && (g == 0) && (b == 1)) {
+            r = 1;
+            g = 1;
+            b = 0;
+        }
+        else if((r == 1) && (g == 1) && (b == 0)) {
+            r = 1;
+            g = 0;
+            b = 1;
+        }
+        else if((r == 1) && (g == 0) && (b == 1)) {
+            r = 0;
+            g = 1;
+            b = 1;
+        }
+        else if((r == 0) && (g == 1) && (b == 1)) {
+            r = 1;
+            g = 1;
+            b = 1;
+        }
+
+        for(int i = 0; i < frontier.size(); i++) {
+            myPoint = grid2Kartesisch(grid, frontier[i].row, frontier[i].col);
+            dummyPos.position.x = myPoint.x;
+            dummyPos.position.y = myPoint.y;
+            myVizPos.push_back(dummyPos);
+            
+        }
+        myVisualize.setMarkerArray(nh, myVizPos, r,g,b);
+
+
+        id = myVizPos.size()+1;
+        myVizPos.clear();
+    }
+
 
 #if 0
     std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
@@ -89,8 +197,6 @@ int main (int argc, char **argv) {
     
 
 
-    Visualizer myVisualize;
-    myVisualize.setMarkerArray(nh, myVizPos);
 
 
     // ros::spin();
