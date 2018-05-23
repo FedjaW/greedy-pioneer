@@ -4,7 +4,7 @@
 #include "findFrontiers.h"
 #include <thread>
 // #include <geometry_msgs/Point.h>
-
+#if 1
 int main (int argc, char **argv) {
     ros::init(argc, argv, "myGetMap");
     ros::NodeHandle nh;
@@ -63,67 +63,6 @@ int main (int argc, char **argv) {
     //dummyPos.position.y = myRobot.y;
 
     std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
-#if 0
-   gridCell dummyCells; 
-    
-    std::vector<gridCell> frontierCells;
-
-    dummyCells.row = 30;
-    dummyCells.col = 30;
-    frontierCells.push_back(dummyCells);
-    //-------------------------------------
-    dummyCells.row = 5;
-    dummyCells.col = 5;
-    frontierCells.push_back(dummyCells);
-
-    dummyCells.row = 3;
-    dummyCells.col = 3;
-    frontierCells.push_back(dummyCells);
-
-    dummyCells.row = 4;
-    dummyCells.col = 4;
-    frontierCells.push_back(dummyCells);
-    //-------------------------------------
-    dummyCells.row = 9;
-    dummyCells.col = 7;
-    frontierCells.push_back(dummyCells);
-    
-    dummyCells.row = 8;
-    dummyCells.col = 7;
-    frontierCells.push_back(dummyCells);
-
-    dummyCells.row = 10;
-    dummyCells.col = 8;
-    frontierCells.push_back(dummyCells);
-    //-------------------------------------
-    dummyCells.row = 100;
-    dummyCells.col = 100;
-    frontierCells.push_back(dummyCells);
-
-    dummyCells.row = 101;
-    dummyCells.col = 101;
-    frontierCells.push_back(dummyCells);
-
-    dummyCells.row = 99;
-    dummyCells.col = 99;
-    frontierCells.push_back(dummyCells);
-    //-------------------------------------
-    dummyCells.row = 6;
-    dummyCells.col = 6;
-    frontierCells.push_back(dummyCells);
-
-    std::cout << "sizeofvector = " << frontierCells.size() << std::endl;
-
-    std::vector<std::vector<gridCell> > frontier_list = frontierCellNhood(frontierCells);
-
-
-    for(auto& frontier : frontier_list) {
-        for(int i = 0; i < frontier.size(); i++) {
-            std::cout << "frontier[" <<i<< "]" << ".row = " << frontier[i].row << " / frontier[" <<i<< "]" << ".col = " << frontier[i].col << std::endl;
-        }
-    }
-
-#endif
 
     std::vector<std::vector<gridCell> > frontier_list = frontierCellNhood(frontierCells);
     Visualizer myVisualize;
@@ -203,3 +142,77 @@ int b = 0;
 
     return 0;
 }
+
+#endif
+
+#if 0
+
+int main (int argc, char **argv) {
+
+   gridCell dummyCells; 
+    
+    std::vector<gridCell> frontierCells;
+
+    dummyCells.row = 2;
+    dummyCells.col = 2;
+    frontierCells.push_back(dummyCells);
+
+    dummyCells.row = 30;
+    dummyCells.col = 30;
+    frontierCells.push_back(dummyCells);
+    //-------------------------------------
+    dummyCells.row = 5;
+    dummyCells.col = 5;
+    frontierCells.push_back(dummyCells);
+
+    dummyCells.row = 3;
+    dummyCells.col = 3;
+    frontierCells.push_back(dummyCells);
+
+    dummyCells.row = 4;
+    dummyCells.col = 4;
+    frontierCells.push_back(dummyCells);
+    //-------------------------------------
+    dummyCells.row = 9;
+    dummyCells.col = 7;
+    frontierCells.push_back(dummyCells);
+    
+    dummyCells.row = 8;
+    dummyCells.col = 7;
+    frontierCells.push_back(dummyCells);
+
+    dummyCells.row = 10;
+    dummyCells.col = 8;
+    frontierCells.push_back(dummyCells);
+    //-------------------------------------
+    dummyCells.row = 100;
+    dummyCells.col = 100;
+    frontierCells.push_back(dummyCells);
+
+    dummyCells.row = 101;
+    dummyCells.col = 101;
+    frontierCells.push_back(dummyCells);
+
+    dummyCells.row = 102;
+    dummyCells.col = 102;
+    frontierCells.push_back(dummyCells);
+    //-------------------------------------
+    dummyCells.row = 6;
+    dummyCells.col = 6;
+    frontierCells.push_back(dummyCells);
+
+    std::cout << "sizeofvector = " << frontierCells.size() << std::endl;
+
+    std::vector<std::vector<gridCell> > frontier_list = frontierCellNhood(frontierCells);
+
+
+    for(auto& frontier : frontier_list) {
+        for(int i = 0; i < frontier.size(); i++) {
+            std::cout << "frontier[" <<i<< "]" << ".row = " << frontier[i].row << " / frontier[" <<i<< "]" << ".col = " << frontier[i].col << std::endl;
+        }
+        std::cout << "----------------------------" << std::endl;
+    }
+
+    return 0;
+}
+#endif
