@@ -1,17 +1,25 @@
+#include <ros/ros.h>
 #include <nav_msgs/GetPlan.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Point.h>
 
+#include "visualize.h"
+
+#include "move_service.h"
+#include "myGetMap.h"
 
 
 
-double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
+// void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
+void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate, double start_x, double start_y) {
     geometry_msgs::PoseStamped Start;
     Start.header.seq = 0;
     Start.header.stamp = ros::Time(0);
     Start.header.frame_id = "/map";
-    Start.pose.position.x = 0;
-    Start.pose.position.y = 0;
+    // Start.pose.position.x = getRobotPos().x; // ich brauche die roboterPosition im 
+    // Start.pose.position.y = getRobotPos().y; // MAP frame und nicht im odom frame
+    Start.pose.position.x = start_x; // ich brauche die roboterPosition im 
+    Start.pose.position.y = start_y; // MAP frame und nicht im odom frame
     Start.pose.position.z = 0.0;
     Start.pose.orientation.x = 0.0;
     Start.pose.orientation.y = 0.0;
@@ -35,5 +43,45 @@ double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCandi
     srv.request.tolerance = 1.5;
 
     ROS_INFO("Make plan: %d", (check_path.call(srv) ? 1 : 0));
+    ROS_INFO("Little reminder: check if move_base is turned on");
     ROS_INFO("Plan size: %d", srv.response.plan.poses.size());
+
+    Visualizer myVisualizer2;
+    int id = 0;
+    std::vector<geometry_msgs::Pose> vizPos;
+    double distance;
+    float myX_old, myY_old = 0;
+    int path_size = srv.response.plan.poses.size();
+    geometry_msgs::PoseStamped myPose;
+    for(int i = 0; i < path_size-1; i++){
+        myPose = srv.response.plan.poses[i];
+        float myX = myPose.pose.position.x;
+        float myY = myPose.pose.position.y;
+        // ROS_INFO("x = %f, y = %f", myX, myY);
+        if(i == 0){
+            myX_old = myX;
+            myY_old = myY;
+        }
+        distance = distance + getDistance(myX_old, myY_old, myX, myY);
+        myX_old = myX;
+        myY_old = myY;
+        vizPos.push_back(myPose.pose);
+    }
+
+    ROS_INFO("Distanz = %f", distance);
+    myVisualizer2.setMarkerArray(nh, vizPos, 0,1,1);
+
+    id = vizPos.size()+1;
+    vizPos.clear();
+
+
+
+}
+
+
+
+
+//__________________________________DISTANCE
+double getDistance(double x1,double y1,double x2,double y2){
+    return sqrt(pow((x2-x1),2)+pow((y2-y1),2));
 }

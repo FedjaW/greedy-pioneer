@@ -1,0 +1,11 @@
+#ifndef MOVE_SERVICE_
+#define MOVE_SERVICE_
+
+#include <ros/ros.h>
+#include <geometry_msgs/Point.h>
+
+
+void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate);
+
+
+#endif

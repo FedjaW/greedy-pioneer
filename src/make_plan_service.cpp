@@ -10,7 +10,6 @@
 #include "angles/angles.h"
 #include "math.h"
 
-
 const double PI = 3.1415;
 
 void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos);

@@ -1,8 +1,15 @@
+#include <ros/ros.h>
 #include "myGetMap.h"
 #include "visualize.h"
 //#include "holyWatcher.h"
 #include "findFrontiers.h"
 #include <thread>
+
+#include "move_service.h"
+#include "geometry_msgs/TransformStamped.h"
+
+
+#include <tf/transform_listener.h>
 // #include <geometry_msgs/Point.h>
 #if 1
 int main (int argc, char **argv) {
@@ -57,8 +64,26 @@ int main (int argc, char **argv) {
     //
     //     }
     // }
+    //
+    //
 
 
+    tf::TransformListener listener;
+    tf::StampedTransform transform_in_map;
+    for(int i = 0; i< 10000; i++) {
+        ROS_INFO("WARTE");
+    }
+    try {
+          listener.lookupTransform("map", "base_link", ros::Time(0), transform_in_map);
+    } catch(tf::TransformException &exception) {
+          ROS_ERROR("%s", exception.what());
+    }
+
+        double x_ = transform_in_map.getOrigin().x();
+        double y_ = transform_in_map.getOrigin().y();
+
+        std::cout << "x_ = " << x_ << std::endl;
+        std::cout << "y_ = " << y_ << std::endl;
     //dummyPos.position.x = myRobot.x;
     //dummyPos.position.y = myRobot.y;
 
@@ -68,11 +93,12 @@ int main (int argc, char **argv) {
     
     // for(auto& frontier : frontier_list) {
         int pseudoMidPointOfFrontier = ceil(frontier_list[0].size() / 2);
-        std::cout << "pseudoMidPointOfFrontier" << pseudoMidPointOfFrontier << std::endl;
+        std::cout << "pseudoMidPointOfFrontier = " << pseudoMidPointOfFrontier << std::endl;
         // goal is then frontier[0][pseudoMidPointOfFrontier];
             myPoint = grid2Kartesisch(grid, frontier_list[0][pseudoMidPointOfFrontier].row, frontier_list[0][pseudoMidPointOfFrontier].col);
-            dummyPos.position.x = myPoint.x;
-            dummyPos.position.y = myPoint.y;
+            // dummyPos.position.x = myPoint.x;
+            // dummyPos.position.y = myPoint.y;
+            getDistanceToFrontier(nh, myPoint, x_, y_);
     // }
 
 
