@@ -5,11 +5,9 @@
 #include "findFrontiers.h"
 #include <thread>
 
+#include "holyWatcher.h"
 #include "move_service.h"
-#include "geometry_msgs/TransformStamped.h"
 
-
-#include <tf/transform_listener.h>
 // #include <geometry_msgs/Point.h>
 #if 1
 int main (int argc, char **argv) {
@@ -24,6 +22,9 @@ int main (int argc, char **argv) {
      rate.sleep(); // warte kurz bis die Callbacks im anderen thread
      rate.sleep(); // aufgerufen wurden und Daten vorliegen
      rate.sleep(); // TODO: schönes lösen !!!
+
+
+    ROS_INFO("Testpunnkt 3");
 
     nav_msgs::OccupancyGrid grid = requestMap(nh);
     std::vector<std::vector<int> > gridMap = readMap(grid);
@@ -64,26 +65,10 @@ int main (int argc, char **argv) {
     //
     //     }
     // }
-    //
-    //
+    
+    double x_ = getRobotPosInMapFrame().getOrigin().x();
+    double y_ = getRobotPosInMapFrame().getOrigin().y();
 
-
-    tf::TransformListener listener;
-    tf::StampedTransform transform_in_map;
-    for(int i = 0; i< 10000; i++) {
-        ROS_INFO("WARTE");
-    }
-    try {
-          listener.lookupTransform("map", "base_link", ros::Time(0), transform_in_map);
-    } catch(tf::TransformException &exception) {
-          ROS_ERROR("%s", exception.what());
-    }
-
-        double x_ = transform_in_map.getOrigin().x();
-        double y_ = transform_in_map.getOrigin().y();
-
-        std::cout << "x_ = " << x_ << std::endl;
-        std::cout << "y_ = " << y_ << std::endl;
     //dummyPos.position.x = myRobot.x;
     //dummyPos.position.y = myRobot.y;
 

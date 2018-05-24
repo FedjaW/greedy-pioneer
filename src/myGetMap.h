@@ -41,6 +41,7 @@ robotPose getRobotPos(/*ros::NodeHandle &nh*/);
 // gewählt werden
 std::vector<std::vector<int> > getCostmap();
 
+
 // void OdomCallback(const nav_msgs::Odometry::ConstPtr& pose_msg);
 // void costmapCallback(const nav_msgs::OccupancyGrid& costmap);
 

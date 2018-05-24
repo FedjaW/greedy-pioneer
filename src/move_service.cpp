@@ -9,6 +9,46 @@
 #include "myGetMap.h"
 
 
+#include "geometry_msgs/TransformStamped.h"
+#include <tf/transform_listener.h>
+
+// tf::TransformListener * starListener() {
+//     tf::TransformListener listener;
+//     return &listener
+// }
+//
+tf::StampedTransform getRobotPosInMapFrame() {
+
+    static tf::TransformListener listener;
+    static tf::StampedTransform robotPosInMapFrame;
+
+    try {
+        listener.waitForTransform("/map", "/base_link", ros::Time(0), ros::Duration(10.0));
+    } catch (tf::TransformException ex) {
+        ROS_ERROR("%s",ex.what());
+    }
+
+
+    double x_ = 0;
+    double y_ = 0;
+   // Das listener Objekt muss frühzeitig erzeugt worden sein !! sonst catch error 
+    try {
+        listener.lookupTransform("map", "base_link", ros::Time(0), robotPosInMapFrame);
+        x_ = robotPosInMapFrame.getOrigin().x();
+        y_ = robotPosInMapFrame.getOrigin().y();
+    } 
+    catch(tf::TransformException &exception) {
+        ROS_ERROR("%s", exception.what());
+    }
+
+    std::cout << "Roboter Position x_ = " << x_ << std::endl;
+    std::cout << "Roboter Position y_ = " << y_ << std::endl;
+
+    return robotPosInMapFrame;
+}
+
+
+
 
 // void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
 void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate, double start_x, double start_y) {
@@ -18,8 +58,8 @@ void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCandita
     Start.header.frame_id = "/map";
     // Start.pose.position.x = getRobotPos().x; // ich brauche die roboterPosition im 
     // Start.pose.position.y = getRobotPos().y; // MAP frame und nicht im odom frame
-    Start.pose.position.x = start_x; // ich brauche die roboterPosition im 
-    Start.pose.position.y = start_y; // MAP frame und nicht im odom frame
+    Start.pose.position.x = start_x;  
+    Start.pose.position.y = start_y; 
     Start.pose.position.z = 0.0;
     Start.pose.orientation.x = 0.0;
     Start.pose.orientation.y = 0.0;
