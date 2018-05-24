@@ -10,7 +10,7 @@ Visualizer::Visualizer() {};
 //     double scale_z_ = scale_z_;
 // }
 
-    int id = 0;
+int id; // KEINE AHNUNG warum das mit der id so klappt ?!??!?!?
 
 void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos, int r, int g, int b){
     

@@ -8,7 +8,6 @@
 
 
 
-
 class Visualizer{
     // private:
     //     double scale_x_;

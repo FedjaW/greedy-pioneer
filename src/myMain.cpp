@@ -64,12 +64,25 @@ int main (int argc, char **argv) {
 
     std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
 
-    std::vector<std::vector<gridCell> > frontier_list = frontierCellNhood(frontierCells);
+    std::vector<std::vector<gridCell> > frontier_list = buildFrontiers(frontierCells);
+    
+    // for(auto& frontier : frontier_list) {
+        int pseudoMidPointOfFrontier = ceil(frontier_list[0].size() / 2);
+        std::cout << "pseudoMidPointOfFrontier" << pseudoMidPointOfFrontier << std::endl;
+        // goal is then frontier[0][pseudoMidPointOfFrontier];
+            myPoint = grid2Kartesisch(grid, frontier_list[0][pseudoMidPointOfFrontier].row, frontier_list[0][pseudoMidPointOfFrontier].col);
+            dummyPos.position.x = myPoint.x;
+            dummyPos.position.y = myPoint.y;
+    // }
+
+
+
     Visualizer myVisualize;
-int id = 0;
-int r = 1;
-int g = 0;
-int b = 0;
+    int id = 0; // KEINE AHNUNG warum das mit der id so klappt
+
+    int r = 1;
+    int g = 0;
+    int b = 0;
 
     for(auto& frontier : frontier_list) {
         if((r == 1) && (g == 0) && (b == 0)) {
@@ -112,10 +125,11 @@ int b = 0;
         }
         myVisualize.setMarkerArray(nh, myVizPos, r,g,b);
 
-
         id = myVizPos.size()+1;
         myVizPos.clear();
     }
+
+
 
 
 #if 0
