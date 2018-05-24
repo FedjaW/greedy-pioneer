@@ -21,7 +21,7 @@ int main (int argc, char **argv) {
      ros::Rate rate(10);
      rate.sleep(); // warte kurz bis die Callbacks im anderen thread
      rate.sleep(); // aufgerufen wurden und Daten vorliegen
-     rate.sleep(); // TODO: schönes lösen !!!
+     rate.sleep(); // TODO: schöner lösen !!!
 
 
     ROS_INFO("Testpunnkt 3");
@@ -66,8 +66,8 @@ int main (int argc, char **argv) {
     //     }
     // }
     
-    double x_ = getRobotPosInMapFrame().getOrigin().x();
-    double y_ = getRobotPosInMapFrame().getOrigin().y();
+    // double x_ = getRobotPosInMapFrame().getOrigin().x();
+    // double y_ = getRobotPosInMapFrame().getOrigin().y();
 
     //dummyPos.position.x = myRobot.x;
     //dummyPos.position.y = myRobot.y;
@@ -76,15 +76,16 @@ int main (int argc, char **argv) {
 
     std::vector<std::vector<gridCell> > frontier_list = buildFrontiers(frontierCells);
     
-    // for(auto& frontier : frontier_list) {
-        int pseudoMidPointOfFrontier = ceil(frontier_list[0].size() / 2);
+    for(auto& frontier : frontier_list) {
+        int pseudoMidPointOfFrontier = ceil(frontier.size() / 2);
         std::cout << "pseudoMidPointOfFrontier = " << pseudoMidPointOfFrontier << std::endl;
         // goal is then frontier[0][pseudoMidPointOfFrontier];
-            myPoint = grid2Kartesisch(grid, frontier_list[0][pseudoMidPointOfFrontier].row, frontier_list[0][pseudoMidPointOfFrontier].col);
+            myPoint = grid2Kartesisch(grid, frontier[pseudoMidPointOfFrontier].row, frontier[pseudoMidPointOfFrontier].col);
             // dummyPos.position.x = myPoint.x;
             // dummyPos.position.y = myPoint.y;
-            getDistanceToFrontier(nh, myPoint, x_, y_);
-    // }
+            // getDistanceToFrontier(nh, myPoint, x_, y_);
+            getDistanceToFrontier(nh, myPoint);
+    }
 
 
 

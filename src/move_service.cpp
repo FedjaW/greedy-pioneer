@@ -12,54 +12,20 @@
 #include "geometry_msgs/TransformStamped.h"
 #include <tf/transform_listener.h>
 
-// tf::TransformListener * starListener() {
-//     tf::TransformListener listener;
-//     return &listener
-// }
-//
-tf::StampedTransform getRobotPosInMapFrame() {
-
-    static tf::TransformListener listener;
-    static tf::StampedTransform robotPosInMapFrame;
-
-    try {
-        listener.waitForTransform("/map", "/base_link", ros::Time(0), ros::Duration(10.0));
-    } catch (tf::TransformException ex) {
-        ROS_ERROR("%s",ex.what());
-    }
-
-
-    double x_ = 0;
-    double y_ = 0;
-   // Das listener Objekt muss frühzeitig erzeugt worden sein !! sonst catch error 
-    try {
-        listener.lookupTransform("map", "base_link", ros::Time(0), robotPosInMapFrame);
-        x_ = robotPosInMapFrame.getOrigin().x();
-        y_ = robotPosInMapFrame.getOrigin().y();
-    } 
-    catch(tf::TransformException &exception) {
-        ROS_ERROR("%s", exception.what());
-    }
-
-    std::cout << "Roboter Position x_ = " << x_ << std::endl;
-    std::cout << "Roboter Position y_ = " << y_ << std::endl;
-
-    return robotPosInMapFrame;
-}
 
 
 
 
 // void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
-void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate, double start_x, double start_y) {
+void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
     geometry_msgs::PoseStamped Start;
     Start.header.seq = 0;
     Start.header.stamp = ros::Time(0);
     Start.header.frame_id = "/map";
     // Start.pose.position.x = getRobotPos().x; // ich brauche die roboterPosition im 
     // Start.pose.position.y = getRobotPos().y; // MAP frame und nicht im odom frame
-    Start.pose.position.x = start_x;  
-    Start.pose.position.y = start_y; 
+    Start.pose.position.x = getRobotPosInMapFrame().getOrigin().x();
+    Start.pose.position.y = getRobotPosInMapFrame().getOrigin().y(); 
     Start.pose.position.z = 0.0;
     Start.pose.orientation.x = 0.0;
     Start.pose.orientation.y = 0.0;
@@ -119,9 +85,40 @@ void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCandita
 }
 
 
+tf::StampedTransform getRobotPosInMapFrame() {
+    static tf::TransformListener listener;
+    static tf::StampedTransform robotPosInMapFrame;
+
+    try {
+        listener.waitForTransform("/map", "/base_link", ros::Time(0), ros::Duration(10.0));
+    } catch (tf::TransformException ex) {
+        ROS_ERROR("%s",ex.what());
+    }
+
+    // double x_ = 0;
+    // double y_ = 0;
+    try {
+        listener.lookupTransform("map", "base_link", ros::Time(0), robotPosInMapFrame);
+        // x_ = robotPosInMapFrame.getOrigin().x();
+        // y_ = robotPosInMapFrame.getOrigin().y();
+        // std::cout << "Roboter Position x_ = " << x_ << std::endl;
+        // std::cout << "Roboter Position y_ = " << y_ << std::endl;
+        return robotPosInMapFrame;
+    } 
+    catch(tf::TransformException &exception) {
+        ROS_ERROR("%s", exception.what());
+    }
+
+}
 
 
 //__________________________________DISTANCE
 double getDistance(double x1,double y1,double x2,double y2){
     return sqrt(pow((x2-x1),2)+pow((y2-y1),2));
 }
+
+
+
+
+
+
