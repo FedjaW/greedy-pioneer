@@ -73,18 +73,29 @@ int main (int argc, char **argv) {
     //dummyPos.position.y = myRobot.y;
 
     std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
-
-    std::vector<std::vector<gridCell> > frontier_list = buildFrontiers(frontierCells);
+// für die Funktion fillFrontier
+    double robotPos_x = getRobotPosInMapFrame().getOrigin().x();
+    double robotPos_y = getRobotPosInMapFrame().getOrigin().y();
+    robotPos_col = kartesisch2grid(grid, robotPos_x, robotPos_y).col;
+    robotPos_row = kartesisch2grid(grid, robotPos_x, robotPos_y).row;
+    robot_yaw = atan2(robotPos_y, robotPos_x);
+// _______________________________________________________________________-
+    std::vector<Frontier> frontier_list = buildFrontiers(frontierCells);
     
     for(auto& frontier : frontier_list) {
-        int pseudoMidPointOfFrontier = ceil(frontier.size() / 2);
-        std::cout << "pseudoMidPointOfFrontier = " << pseudoMidPointOfFrontier << std::endl;
-        // goal is then frontier[0][pseudoMidPointOfFrontier];
-            myPoint = grid2Kartesisch(grid, frontier[pseudoMidPointOfFrontier].row, frontier[pseudoMidPointOfFrontier].col);
+        // int pseudoMidPointOfFrontier = ceil(frontier.size() / 2);
+        // std::cout << "pseudoMidPointOfFrontier = " << pseudoMidPointOfFrontier << std::endl;
+        std::cout << "frontier.centroid.row = " << frontier.centroid.row << std::endl;
+        std::cout << "frontier.centroid.col = " << frontier.centroid.col << std::endl;
+            myPoint = grid2Kartesisch(grid,
+                                            frontier.connected_f_cells[frontier.idxOfMinDistance].row, 
+                                            frontier.connected_f_cells[frontier.idxOfMinDistance].col);
             // dummyPos.position.x = myPoint.x;
             // dummyPos.position.y = myPoint.y;
             // getDistanceToFrontier(nh, myPoint, x_, y_);
-            getDistanceToFrontier(nh, myPoint);
+
+            //TODO: das ding returned einen double !!!
+            double dummyVar = getDistanceToFrontier(nh, myPoint);
     }
 
 
@@ -128,8 +139,8 @@ int main (int argc, char **argv) {
             b = 1;
         }
 
-        for(int i = 0; i < frontier.size(); i++) {
-            myPoint = grid2Kartesisch(grid, frontier[i].row, frontier[i].col);
+        for(int i = 0; i < frontier.connected_f_cells.size(); i++) {
+            myPoint = grid2Kartesisch(grid, frontier.connected_f_cells[i].row, frontier.connected_f_cells[i].col);
             dummyPos.position.x = myPoint.x;
             dummyPos.position.y = myPoint.y;
             myVizPos.push_back(dummyPos);

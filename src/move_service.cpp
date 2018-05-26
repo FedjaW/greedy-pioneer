@@ -8,16 +8,13 @@
 #include "move_service.h"
 #include "myGetMap.h"
 
-
 #include "geometry_msgs/TransformStamped.h"
 #include <tf/transform_listener.h>
 
 
 
-
-
 // void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
-void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
+double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
     geometry_msgs::PoseStamped Start;
     Start.header.seq = 0;
     Start.header.stamp = ros::Time(0);
@@ -75,12 +72,13 @@ void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCandita
     }
 
     ROS_INFO("Distanz = %f", distance);
+    
     myVisualizer2.setMarkerArray(nh, vizPos, 0,1,1);
 
     id = vizPos.size()+1;
     vizPos.clear();
-
-
+    
+    return distance;
 
 }
 
