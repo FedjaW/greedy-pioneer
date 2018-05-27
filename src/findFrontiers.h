@@ -19,6 +19,7 @@ struct Frontier {
     double directMinDistance; // der Minimale Abstand zum Roboter
                               // nach euklidischer Formel berechnen
     int idxOfMinDistance; // index of cell that contains the min distance to robot
+
     double rotationAngle; // angle between closest point and robot view direction
 
 };

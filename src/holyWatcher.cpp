@@ -4,16 +4,11 @@
 #include "tf/transform_broadcaster.h"
 #include <ros/ros.h>
 
-
-
-
-
 /* struct position {
     float x;
     float y;
 };*/
 
-// using namespace std;
 
 robotPose roboterPosition;
 std::vector<std::vector<int> > costmap_grid_vec;

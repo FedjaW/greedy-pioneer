@@ -52,7 +52,7 @@ double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCandi
     Visualizer myVisualizer2;
     int id = 0;
     std::vector<geometry_msgs::Pose> vizPos;
-    double distance;
+    double distance = 0;
     float myX_old, myY_old = 0;
     int path_size = srv.response.plan.poses.size();
     geometry_msgs::PoseStamped myPose;

@@ -23,7 +23,6 @@ int main (int argc, char **argv) {
      rate.sleep(); // aufgerufen wurden und Daten vorliegen
      rate.sleep(); // TODO: schöner lösen !!!
 
-
     ROS_INFO("Testpunnkt 3");
 
     nav_msgs::OccupancyGrid grid = requestMap(nh);
@@ -73,7 +72,7 @@ int main (int argc, char **argv) {
     //dummyPos.position.y = myRobot.y;
 
     std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
-// für die Funktion fillFrontier
+// für die Funktion fillFrontier / alle variablem sind Global
     double robotPos_x = getRobotPosInMapFrame().getOrigin().x();
     double robotPos_y = getRobotPosInMapFrame().getOrigin().y();
     robotPos_col = kartesisch2grid(grid, robotPos_x, robotPos_y).col;

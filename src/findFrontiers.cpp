@@ -3,7 +3,7 @@
 #include "angles/angles.h"
 #include "math.h"
 
-
+#include "holyWatcher.h"
 
 // Minimum size that a Frontier should have to be accepted as valid Frontier
 // Size is the Number of neighbour-gridCells;
@@ -11,6 +11,9 @@
 const unsigned int frontierMinSize = 20;
 const double PI = 3.1415;
 
+// Diese Variablen brauche ich buildFrontier()
+// Habe sie global gemacht da ich nicht weiß
+// wie ich sie sonst da reinbekommen soll
 int robotPos_row; // = kartesisch2grid().row
 int robotPos_col; // = kartesisch2grid().grid
 double robot_yaw; // =  getRobotPosInMapFrame().
@@ -24,7 +27,7 @@ int k = 0;
     for(int i = searchRegion.size() - 1; i>= 0 ; i--){      // durchsuche ganze Karte
         for(int j = 0; j < searchRegion[0].size(); j++){
 
-            if(searchRegion[i][j] == 0) { // prüfen ob Zelle frei ist
+            if(searchRegion[i][j] == 0 && costmap_grid_vec[i][j] == 0) { // prüfen ob Zelle frei ist
 
                 if(searchRegion[i+1][j] == -1){ // prüfen ob der Nachbar unbekannt ist
                     myFrontierCell.row = j;
@@ -133,8 +136,8 @@ Frontier fillFrontier(std::vector<gridCell> frontier) {
             realFrontier.centroid.row = 0;
             realFrontier.centroid.col = 0;
 
+            double oldDistance = 10000000; // sehr hoch wählen damit die neue Distnz auf jedenfall kleiner ist 
             for(int m = 0; m < realFrontier.numberOfElements; m++) {
-                static double oldDistance = 10000000; // sehr hoch wählen damit die neue Distnz auf jedenfall kleiner ist 
                 double newDistance = sqrt( pow( (realFrontier.connected_f_cells[m].row - robotPos_row),2) + 
                                            pow( (realFrontier.connected_f_cells[m].col - robotPos_col),2) );
                 if(newDistance < oldDistance) {
