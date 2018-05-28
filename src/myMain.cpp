@@ -47,16 +47,16 @@ int main (int argc, char **argv) {
     robotPos_row = kartesisch2grid(grid, robotPos_x, robotPos_y).row;
     robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
     std::cout << "robot_yaw = " << robot_yaw << std::endl;
-    rate2.sleep();
-    rate2.sleep();
-    rate2.sleep();
-    robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
-    std::cout << "robot_yaw = " << robot_yaw << std::endl;
-    rate2.sleep();
-    rate2.sleep();
-    rate2.sleep();
-    robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
-    std::cout << "robot_yaw = " << robot_yaw << std::endl;
+    // rate2.sleep();
+    // rate2.sleep();
+    // rate2.sleep();
+    // robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
+    // std::cout << "robot_yaw = " << robot_yaw << std::endl;
+    // rate2.sleep();
+    // rate2.sleep();
+    // rate2.sleep();
+    // robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
+    // std::cout << "robot_yaw = " << robot_yaw << std::endl;
     // _______________________________________________________________________
     std::vector<Frontier> frontier_list = buildFrontiers(frontierCells);
     

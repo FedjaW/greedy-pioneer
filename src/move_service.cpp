@@ -4,7 +4,7 @@
 #include <geometry_msgs/Point.h>
 
 #include "visualize.h"
-
+#include "holyWatcher.h"
 #include "move_service.h"
 #include "myGetMap.h"
 
@@ -93,14 +93,8 @@ tf::StampedTransform getRobotPosInMapFrame() {
         ROS_ERROR("%s",ex.what());
     }
 
-    // double x_ = 0;
-    // double y_ = 0;
     try {
         listener.lookupTransform("map", "base_link", ros::Time(0), robotPosInMapFrame);
-        // x_ = robotPosInMapFrame.getOrigin().x();
-        // y_ = robotPosInMapFrame.getOrigin().y();
-        // std::cout << "Roboter Position x_ = " << x_ << std::endl;
-        // std::cout << "Roboter Position y_ = " << y_ << std::endl;
         return robotPosInMapFrame;
     } 
     catch(tf::TransformException &exception) {
@@ -117,6 +111,21 @@ double getDistance(double x1,double y1,double x2,double y2){
 
 
 
+void rotate(double angle_diff) {
+    double tolerance = 0.1;
+    geometry_msgs::Twist vel_msg;
+   do{ 
+        vel_msg.angular.z = 2 * angle_diff; 
+        ROS_INFO("angular.z = %f", vel_msg.angular.z);
+        ROS_INFO("angle diff = %f", angle_diff);
+        if(vel_msg.angular.z > 2) vel_msg.angular.z = 2;
+        if(vel_msg.angular.z < -2) vel_msg.angular.z = -2;
 
+        velocity_publisher.publish(vel_msg);
 
+    }while(fabs(angle_diff) > tolerance);
 
+    vel_msg.angular.z = 0;
+    velocity_publisher.publish(vel_msg);
+    ROS_INFO("Rotation done");
+}

@@ -10,8 +10,8 @@
 // void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate);
 double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate);
 double getDistance(double x1,double y1,double x2,double y2);
-
 tf::StampedTransform getRobotPosInMapFrame();
+void rotate(double angle_diff);
 
 
 
