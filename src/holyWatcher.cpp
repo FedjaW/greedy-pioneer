@@ -63,11 +63,9 @@ void updateCostmap(const nav_msgs::OccupancyGrid& costmap_msg) {
 
 }
 
-ros::Publisher velocity_publisher;
 void startPositionWatcher() {
 
     ros::NodeHandle nodeHandle;
-    ros::Publisher velocity_publisher = nodeHandle.advertise<geometry_msgs::Twist>("/cmd_vel",10);  
     ros::Subscriber subscriber = nodeHandle.subscribe("odometry/filtered", 
                                                         10, 
                                                         updateRoboterPosition);

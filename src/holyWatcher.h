@@ -19,7 +19,6 @@ struct robotPose{
 // ohne extern geht hier nix!!!! compiler sagt dann multiple definition of roboterPosition
 extern robotPose roboterPosition;
 extern std::vector<std::vector<int> > costmap_grid_vec;
-extern ros::Publisher velocity_publisher;
 
  //position roboterPosition;
 //position getCurrentPos();

@@ -131,7 +131,8 @@ int main (int argc, char **argv) {
     }
 
 
-
+std::cout << "frontier_list[0].rotationAngle = " << frontier_list[0].rotationAngle << std::endl;
+rotate(nh, frontier_list[0].rotationAngle);
 
 #if 0
     std::vector<gridCell> frontierCells = findFrontierCells(gridMap);

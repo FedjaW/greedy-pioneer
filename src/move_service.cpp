@@ -111,20 +111,28 @@ double getDistance(double x1,double y1,double x2,double y2){
 
 
 
-void rotate(double angle_diff) {
-    double tolerance = 0.1;
+void rotate(ros::NodeHandle &nh, double rotation_angle) {
+    ros::Publisher velocity_publisher = nh.advertise<geometry_msgs::Twist>("/cmd_vel",11);  
+    double angle_diff = 0;
+    double robot_yaw = 0;
+    double tolerance = 0.06;
     geometry_msgs::Twist vel_msg;
-   do{ 
+    robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
+    rotation_angle = rotation_angle + robot_yaw; // NOTE: Trick to calculate the steering_angle
+    do{ 
+        robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
+        angle_diff = rotation_angle - robot_yaw;
         vel_msg.angular.z = 2 * angle_diff; 
-        ROS_INFO("angular.z = %f", vel_msg.angular.z);
-        ROS_INFO("angle diff = %f", angle_diff);
-        if(vel_msg.angular.z > 2) vel_msg.angular.z = 2;
-        if(vel_msg.angular.z < -2) vel_msg.angular.z = -2;
+        // ROS_INFO("angular.z = %f", vel_msg.angular.z);
+        // ROS_INFO("angle diff = %f", angle_diff);
+        if(vel_msg.angular.z > 2) vel_msg.angular.z = 1.8;
+        if(vel_msg.angular.z < -2) vel_msg.angular.z = -1.8;
 
         velocity_publisher.publish(vel_msg);
 
     }while(fabs(angle_diff) > tolerance);
 
+    std::cout << "robot_yaw = " << robot_yaw << std::endl;
     vel_msg.angular.z = 0;
     velocity_publisher.publish(vel_msg);
     ROS_INFO("Rotation done");
