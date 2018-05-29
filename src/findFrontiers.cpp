@@ -138,8 +138,8 @@ Frontier fillFrontier(std::vector<gridCell> frontier) {
 
             double oldDistance = 10000000; // sehr hoch wählen damit die neue Distnz auf jedenfall kleiner ist 
             for(int m = 0; m < realFrontier.numberOfElements; m++) {
-                double newDistance = sqrt( pow( (realFrontier.connected_f_cells[m].row - robotPos_row),2) + 
-                                           pow( (realFrontier.connected_f_cells[m].col - robotPos_col),2) );
+                double newDistance = sqrt( pow((realFrontier.connected_f_cells[m].row - robotPos_row),2) + 
+                                           pow((realFrontier.connected_f_cells[m].col - robotPos_col),2) );
                 if(newDistance < oldDistance) {
                     realFrontier.directMinDistance = newDistance;
                     realFrontier.idxOfMinDistance = m;
@@ -161,7 +161,7 @@ Frontier fillFrontier(std::vector<gridCell> frontier) {
                                           realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].row - robotPos_row);
             int steering_angle_normalized_deg = ((int) radiand2degrees(steering_angle)+360)%360;
             double steering_angle_normalized_rad = degrees2rad(steering_angle_normalized_deg);
-            realFrontier.rotationAngle = steering_angle_normalized_rad - robot_yaw;
+            realFrontier.rotationAngle = steering_angle - robot_yaw;
 
             return realFrontier;
 

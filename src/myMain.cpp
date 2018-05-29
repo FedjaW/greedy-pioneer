@@ -36,10 +36,9 @@ int main (int argc, char **argv) {
 
     ROS_INFO("x: %f / y: %f", getRobotPos().x, getRobotPos().y);
     //ROS_INFO("myRobot.yaw = %f", myRobot.yaw);
-
     geometry_msgs::Point myPoint;
-
     std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
+    //
     // für die Funktion fillFrontier / alle variablem sind Global
     double robotPos_x = getRobotPosInMapFrame().getOrigin().x(); //getRobotPosInMapFrame erzeugt ein globales Objekt
     double robotPos_y = getRobotPosInMapFrame().getOrigin().y(); // vom TransformListener
@@ -47,17 +46,9 @@ int main (int argc, char **argv) {
     robotPos_row = kartesisch2grid(grid, robotPos_x, robotPos_y).row;
     robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
     std::cout << "robot_yaw = " << robot_yaw << std::endl;
-    // rate2.sleep();
-    // rate2.sleep();
-    // rate2.sleep();
-    // robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
-    // std::cout << "robot_yaw = " << robot_yaw << std::endl;
-    // rate2.sleep();
-    // rate2.sleep();
-    // rate2.sleep();
-    // robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
-    // std::cout << "robot_yaw = " << robot_yaw << std::endl;
     // _______________________________________________________________________
+
+
     std::vector<Frontier> frontier_list = buildFrontiers(frontierCells);
     
     for(auto& frontier : frontier_list) {
@@ -72,8 +63,9 @@ int main (int argc, char **argv) {
             // dummyPos.position.y = myPoint.y;
             // getDistanceToFrontier(nh, myPoint, x_, y_);
 
-            //TODO: das ding returned einen double !!!
-            double dummyVar = getDistanceToFrontier(nh, myPoint);
+            // TODO: das ding returned einen double !!!
+            // NOTE: Diese Funktion sll in Exploration.cpp genutzt werden
+            double dummyVar = getDistanceToFrontier(nh, myPoint); 
     }
 
 
@@ -133,6 +125,13 @@ int main (int argc, char **argv) {
 
 std::cout << "frontier_list[0].rotationAngle = " << frontier_list[0].rotationAngle << std::endl;
 rotate(nh, frontier_list[0].rotationAngle);
+myPoint = grid2Kartesisch(grid,
+                            frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
+                            frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
+sendGoal(myPoint.x, myPoint.y, 1);
+
+
+
 
 #if 0
     std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
@@ -150,12 +149,7 @@ rotate(nh, frontier_list[0].rotationAngle);
     std::cout << "myVizPos.Size() = " << myVizPos.size() << std::endl;
 #endif 
     
-
-
-
-
     // ros::spin();
-
     return 0;
 }
 
