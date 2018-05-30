@@ -31,8 +31,6 @@ std::vector<Frontier> buildFrontiers(std::vector<gridCell> frontierCells);
 Frontier fillFrontier(std::vector<gridCell> frontier);
 
 
-double radiand2degrees(double angle_in_radiand);
-double degrees2rad(double angle_in_degrees);
 
 
 

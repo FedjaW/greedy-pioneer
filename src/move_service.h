@@ -12,7 +12,9 @@ double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCandi
 double getDistance(double x1,double y1,double x2,double y2);
 tf::StampedTransform getRobotPosInMapFrame();
 void rotate(ros::NodeHandle &nh, double rotation_angle);
-void sendGoal(double x, double y, double w);
+void sendGoal(double x, double y);
+// bool isObstacleInViewField(int x0, int y0, int x1, int y1);
+bool isObstacleInViewField(ros::NodeHandle &nh, const nav_msgs::OccupancyGrid& map, int x0, int y0, int x1, int y1);
 
 
 

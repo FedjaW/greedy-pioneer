@@ -124,11 +124,26 @@ int main (int argc, char **argv) {
 
 
 std::cout << "frontier_list[0].rotationAngle = " << frontier_list[0].rotationAngle << std::endl;
-rotate(nh, frontier_list[0].rotationAngle);
-myPoint = grid2Kartesisch(grid,
-                            frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
-                            frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
-sendGoal(myPoint.x, myPoint.y, 1);
+
+bool obstacle = isObstacleInViewField(nh,
+                        grid,
+                        robotPos_col, 
+                        robotPos_row,
+                        frontier_list[1].connected_f_cells[frontier_list[1].idxOfMinDistance].col, 
+                        frontier_list[1].connected_f_cells[frontier_list[1].idxOfMinDistance].row);
+
+
+
+std::cout << "obstacle = " << obstacle << std::endl;
+
+
+// rotate(nh, frontier_list[0].rotationAngle);
+//
+// myPoint = grid2Kartesisch(grid,
+//                             frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
+//                             frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
+//
+// sendGoal(myPoint.x, myPoint.y);
 
 
 

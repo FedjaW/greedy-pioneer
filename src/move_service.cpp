@@ -13,6 +13,7 @@
 
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
+// #include <tf/transform_datatypes.h>
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
@@ -123,26 +124,13 @@ void rotate(ros::NodeHandle &nh, double rotation_angle) {
     geometry_msgs::Twist vel_msg;
 
     robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
-    std::cout << "robot_yaw = " << robot_yaw << std::endl;
-
     rotation_angle = rotation_angle + robot_yaw; // NOTE: Trick to calculate the steering_angle
-    std::cout << "rotation_angle = " << rotation_angle << std::endl;
-
-    angle_diff = rotation_angle - robot_yaw;
-    std::cout << "angle_diff = " << angle_diff << std::endl;
-
-    ros::Rate rate(10);
     do{ 
         robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
-        // std::cout << "robot_yaw = " << robot_yaw << std::endl;
         angle_diff = rotation_angle - robot_yaw;
-        // std::cout << "angle_diff = " << angle_diff << std::endl;
-        // std::cout << "rotation_angle = " << rotation_angle << std::endl;
         vel_msg.angular.z = 2 * angle_diff; 
-        // ROS_INFO("angular.z = %f", vel_msg.angular.z);
-        // ROS_INFO("angle diff = %f", angle_diff);
-        if(vel_msg.angular.z > 2) vel_msg.angular.z = 1.8;
-        if(vel_msg.angular.z < -2) vel_msg.angular.z = -1.8;
+        if(vel_msg.angular.z > 1.8) vel_msg.angular.z = 1.8;
+        if(vel_msg.angular.z < -1.8) vel_msg.angular.z = -1.8;
 
         velocity_publisher.publish(vel_msg);
 
@@ -156,7 +144,7 @@ void rotate(ros::NodeHandle &nh, double rotation_angle) {
 
  
 
-void sendGoal(double x, double y, double w) {
+void sendGoal(double x, double y) {
   //tell the action client that we want to spin a thread by default
   MoveBaseClient ac("move_base", true);
 
@@ -173,15 +161,62 @@ void sendGoal(double x, double y, double w) {
 
   goal.target_pose.pose.position.x = x;
   goal.target_pose.pose.position.y = y;
-  goal.target_pose.pose.orientation.w = w;
+  
+  // Convert the Euler angle to quaternion
+  // tf::Quaternion quaternion;
+  // quaternion = tf::createQuaternionFromYaw(orientation);
+  // geometry_msgs::Quaternion qMsg;
+  // tf::quaternionTFToMsg(quaternion, qMsg);
+  // goal.target_pose.pose.orientation.w = qMsg;
 
-  ROS_INFO("Sending goal");
+  ROS_INFO("Sending goal to navigation planner");
   ac.sendGoal(goal);
 
   ac.waitForResult();
 
   if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-    ROS_INFO("Hooray, we reached the goal");
+    ROS_INFO("Hooray, we reached the goal :-)");
   else
-    ROS_INFO("Dang, we didn't make it to the goal");
+    ROS_INFO("Dang, we didn't make it to the goal :-(");
+}
+
+
+
+
+bool isObstacleInViewField(ros::NodeHandle &nh, const nav_msgs::OccupancyGrid& map, int x0, int y0, int x1, int y1) {
+    // Bresenham-Algorithm
+    int dx =  abs(x1-x0), sx = x0<x1 ? 1 : -1;
+    int dy = -abs(y1-y0), sy = y0<y1 ? 1 : -1;
+    int err = dx+dy, e2; // error value e_xy 
+
+    Visualizer myVisualizer3;
+    int id = 0;
+    std::vector<geometry_msgs::Pose> vizPos;
+    geometry_msgs::PoseStamped myPose;
+
+
+    while(1){
+        // setPixel(x0,y0);
+        
+        myPose.pose.position.x = grid2Kartesisch(map,y0,x0).x;
+        myPose.pose.position.y = grid2Kartesisch(map,y0,x0).y;
+        vizPos.push_back(myPose.pose);
+
+        if (x0==x1 && y0==y1) break;
+        e2 = 2*err;
+        if (e2 > dy) { err += dy; x0 += sx; } // e_xy+e_x > 0 
+        if (e2 < dx) { err += dx; y0 += sy; } // e_xy+e_y < 0 
+        if (costmap_grid_vec[x0][y0] > 10) { 
+            myVisualizer3.setMarkerArray(nh, vizPos, 1,0,1);
+            id = vizPos.size()+1;
+            vizPos.clear();
+            return true;
+        }
+    }
+
+    myVisualizer3.setMarkerArray(nh, vizPos, 1,0,1);
+    id = vizPos.size()+1;
+    vizPos.clear();
+
+    return false;
 }

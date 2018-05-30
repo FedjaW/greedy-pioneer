@@ -9,7 +9,6 @@
 // Size is the Number of neighbour-gridCells;
 // TODO: Calculate the lenght out of Size -> with cell resolution
 const unsigned int frontierMinSize = 20;
-const double PI = 3.1415;
 
 // Diese Variablen brauche ich buildFrontier()
 // Habe sie global gemacht da ich nicht weiß
@@ -82,12 +81,14 @@ std::vector<Frontier> buildFrontiers(std::vector<gridCell> frontierCells) {
                 frontier.push_back(frontierCells[n]);
                 frontierCells.erase(frontierCells.begin()+n);
                 root = true;
-                n--;
+                n--; // NOTE: ist nötig weil alle Elemente einen aufrutschen
             }
         }
 
         if(root == true) {
             // frontiercell i is the root (wurzel) of 'this' frontier, so insert it at the beginning
+
+            // ---------------------------------------------------------------------------------------------------
             // ander würde es auch nicht funktionieren weil das erste Element in froniter übersprungen wird (c=1)
             frontier.insert(frontier.begin(), frontierCells[i]); 
             frontierCells.erase(frontierCells.begin()+i);
@@ -129,65 +130,42 @@ std::vector<Frontier> buildFrontiers(std::vector<gridCell> frontierCells) {
 
 
 Frontier fillFrontier(std::vector<gridCell> frontier) {
-            Frontier realFrontier;
-            realFrontier.connected_f_cells = frontier;
-            realFrontier.numberOfElements = frontier.size();
-            realFrontier.pseudoMidPoint = ceil(realFrontier.numberOfElements / 2); //TODO: anstatt ceil auf int casten 
-            realFrontier.centroid.row = 0;
-            realFrontier.centroid.col = 0;
+    Frontier realFrontier;
+    realFrontier.connected_f_cells = frontier;
+    realFrontier.numberOfElements = frontier.size();
+    realFrontier.pseudoMidPoint = ceil(realFrontier.numberOfElements / 2); //TODO: anstatt ceil auf int casten 
+    realFrontier.centroid.row = 0;
+    realFrontier.centroid.col = 0;
 
-            double oldDistance = 10000000; // sehr hoch wählen damit die neue Distnz auf jedenfall kleiner ist 
-            for(int m = 0; m < realFrontier.numberOfElements; m++) {
-                double newDistance = sqrt( pow((realFrontier.connected_f_cells[m].row - robotPos_row),2) + 
-                                           pow((realFrontier.connected_f_cells[m].col - robotPos_col),2) );
-                if(newDistance < oldDistance) {
-                    realFrontier.directMinDistance = newDistance;
-                    realFrontier.idxOfMinDistance = m;
-                    oldDistance = newDistance;
-                }
+    double oldDistance = 10000000; // sehr hoch wählen damit die neue Distnz auf jedenfall kleiner ist 
+    for(int m = 0; m < realFrontier.numberOfElements; m++) {
+        double newDistance = sqrt( pow((realFrontier.connected_f_cells[m].row - robotPos_row),2) + 
+                pow((realFrontier.connected_f_cells[m].col - robotPos_col),2) );
+        if(newDistance < oldDistance) {
+            realFrontier.directMinDistance = newDistance;
+            realFrontier.idxOfMinDistance = m;
+            oldDistance = newDistance;
+        }
 
-                realFrontier.centroid.row += realFrontier.connected_f_cells[m].row;
-                realFrontier.centroid.col += realFrontier.connected_f_cells[m].col;
-            }
-            
-            std::cout << "realFrontier.directMinDistance = "<< realFrontier.directMinDistance  << std::endl;
-            // Berechne den centroid des Frontiers
-            realFrontier.centroid.row  = realFrontier.centroid.row / realFrontier.numberOfElements;
-            realFrontier.centroid.col  = realFrontier.centroid.col / realFrontier.numberOfElements;
-            
-            // Berechne den Winkelunterschied zwischen zielfrontier und Roboterausrichtung (yaw)
-            // steering_angle = atan2(goal_pos_y - jackal_position_y, goal_pos_x - jackal_position_x);
-            double steering_angle = atan2(realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].col - robotPos_col, 
-                                          realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].row - robotPos_row);
-            int steering_angle_normalized_deg = ((int) radiand2degrees(steering_angle)+360)%360;
-            double steering_angle_normalized_rad = degrees2rad(steering_angle_normalized_deg);
-            realFrontier.rotationAngle = steering_angle - robot_yaw;
+        realFrontier.centroid.row += realFrontier.connected_f_cells[m].row;
+        realFrontier.centroid.col += realFrontier.connected_f_cells[m].col;
+    }
 
-            return realFrontier;
+    std::cout << "realFrontier.directMinDistance = "<< realFrontier.directMinDistance  << std::endl;
+    // Berechne den centroid des Frontiers
+    realFrontier.centroid.row  = realFrontier.centroid.row / realFrontier.numberOfElements;
+    realFrontier.centroid.col  = realFrontier.centroid.col / realFrontier.numberOfElements;
 
+    // Berechne den Winkelunterschied zwischen zielfrontier und Roboterausrichtung (yaw)
+    // steering_angle = atan2(goal_pos_y - jackal_position_y, goal_pos_x - jackal_position_x);
+    double steering_angle = atan2(realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].col - robotPos_col, 
+            realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].row - robotPos_row);
+    realFrontier.rotationAngle = steering_angle - robot_yaw;
+
+    return realFrontier;
 }
 
 
-double radiand2degrees(double angle_in_radiand){
-
-            return angle_in_radiand * 180 / PI;
-}
-
-double degrees2rad(double angle_in_degrees){
-
-            return angle_in_degrees * PI/180;
-}
-
-
-
-//
-//
-// bool isFrontierCellANeigbour(unsigned int idx1, unsigned int idx2) {
-//      return (abs(frontier[idx1].row - frontierCells[idx2].row) <= 1) &&
-//              (abs(frontier[idx1].col - frontierCells[idx2].col) <= 1);
-// }
-
-// ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 // ALTE ART (SEHR LANGSAM) die Nachbarn der Frontierzellen zu finden
