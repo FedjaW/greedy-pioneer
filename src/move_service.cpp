@@ -13,7 +13,7 @@
 
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
-// #include <tf/transform_datatypes.h>
+#include <tf/transform_datatypes.h>
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
@@ -51,7 +51,7 @@ double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCandi
     srv.request.tolerance = 1.5;
 
     ROS_INFO("Make plan: %d", (check_path.call(srv) ? 1 : 0));
-    ROS_INFO("Little reminder: check if move_base is turned on");
+    // ROS_INFO("Little reminder: check if move_base is turned on");
     ROS_INFO("Plan size: %d", srv.response.plan.poses.size());
 
     Visualizer myVisualizer2;
@@ -65,7 +65,6 @@ double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCandi
         myPose = srv.response.plan.poses[i];
         float myX = myPose.pose.position.x;
         float myY = myPose.pose.position.y;
-        // ROS_INFO("x = %f, y = %f", myX, myY);
         if(i == 0) {
             myX_old = myX;
             myY_old = myY;
@@ -94,7 +93,8 @@ tf::StampedTransform getRobotPosInMapFrame() {
 
     try {
         listener.waitForTransform("/map", "/base_link", ros::Time(0), ros::Duration(10.0));
-    } catch (tf::TransformException ex) {
+    }
+    catch (tf::TransformException ex) {
         ROS_ERROR("%s",ex.what());
     }
 
@@ -111,7 +111,7 @@ tf::StampedTransform getRobotPosInMapFrame() {
 
 //__________________________________DISTANCE
 double getDistance(double x1,double y1,double x2,double y2){
-    return sqrt(pow((x2-x1),2)+pow((y2-y1),2));
+    return sqrt( pow((x2-x1),2) + pow((y2-y1),2) );
 }
 
 
@@ -136,15 +136,15 @@ void rotate(ros::NodeHandle &nh, double rotation_angle) {
 
     }while(fabs(angle_diff) > tolerance);
 
-    std::cout << "robot_yaw = " << robot_yaw << std::endl;
+    // std::cout << "robot_yaw = " << robot_yaw << std::endl;
     vel_msg.angular.z = 0;
     velocity_publisher.publish(vel_msg);
-    ROS_INFO("Rotation done");
+    ROS_INFO("Rotation done :-)");
 }
 
  
 
-void sendGoal(double x, double y) {
+void sendGoal(double x, double y, double orientation) {
   //tell the action client that we want to spin a thread by default
   MoveBaseClient ac("move_base", true);
 
@@ -161,13 +161,7 @@ void sendGoal(double x, double y) {
 
   goal.target_pose.pose.position.x = x;
   goal.target_pose.pose.position.y = y;
-  
-  // Convert the Euler angle to quaternion
-  // tf::Quaternion quaternion;
-  // quaternion = tf::createQuaternionFromYaw(orientation);
-  // geometry_msgs::Quaternion qMsg;
-  // tf::quaternionTFToMsg(quaternion, qMsg);
-  // goal.target_pose.pose.orientation.w = qMsg;
+  goal.target_pose.pose.orientation.w = orientation;
 
   ROS_INFO("Sending goal to navigation planner");
   ac.sendGoal(goal);
@@ -206,15 +200,17 @@ bool isObstacleInViewField(ros::NodeHandle &nh, const nav_msgs::OccupancyGrid& m
         e2 = 2*err;
         if (e2 > dy) { err += dy; x0 += sx; } // e_xy+e_x > 0 
         if (e2 < dx) { err += dx; y0 += sy; } // e_xy+e_y < 0 
-        if (costmap_grid_vec[x0][y0] > 10) { 
-            myVisualizer3.setMarkerArray(nh, vizPos, 1,0,1);
+
+        if (costmap_grid_vec[x0][y0] > 100) { 
+            myVisualizer3.setMarkerArray(nh, vizPos, 1,1,0);
             id = vizPos.size()+1;
             vizPos.clear();
             return true;
+
         }
     }
 
-    myVisualizer3.setMarkerArray(nh, vizPos, 1,0,1);
+    myVisualizer3.setMarkerArray(nh, vizPos, 1,1,0);
     id = vizPos.size()+1;
     vizPos.clear();
 

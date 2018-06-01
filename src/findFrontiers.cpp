@@ -133,14 +133,15 @@ Frontier fillFrontier(std::vector<gridCell> frontier) {
     Frontier realFrontier;
     realFrontier.connected_f_cells = frontier;
     realFrontier.numberOfElements = frontier.size();
+    std::cout << "realFrontier.numberOfElements = "<< realFrontier.numberOfElements << std::endl;
     realFrontier.pseudoMidPoint = ceil(realFrontier.numberOfElements / 2); //TODO: anstatt ceil auf int casten 
     realFrontier.centroid.row = 0;
     realFrontier.centroid.col = 0;
 
-    double oldDistance = 10000000; // sehr hoch wählen damit die neue Distnz auf jedenfall kleiner ist 
+    double oldDistance = 100000; // sehr hoch wählen damit die neue Distnz auf jedenfall kleiner ist 
     for(int m = 0; m < realFrontier.numberOfElements; m++) {
         double newDistance = sqrt( pow((realFrontier.connected_f_cells[m].row - robotPos_row),2) + 
-                pow((realFrontier.connected_f_cells[m].col - robotPos_col),2) );
+                                   pow((realFrontier.connected_f_cells[m].col - robotPos_col),2) ) * 0.02;
         if(newDistance < oldDistance) {
             realFrontier.directMinDistance = newDistance;
             realFrontier.idxOfMinDistance = m;
@@ -151,16 +152,25 @@ Frontier fillFrontier(std::vector<gridCell> frontier) {
         realFrontier.centroid.col += realFrontier.connected_f_cells[m].col;
     }
 
-    std::cout << "realFrontier.directMinDistance = "<< realFrontier.directMinDistance  << std::endl;
+    std::cout << "realFrontier.directMinDistance = "<< realFrontier.directMinDistance << std::endl;
     // Berechne den centroid des Frontiers
     realFrontier.centroid.row  = realFrontier.centroid.row / realFrontier.numberOfElements;
     realFrontier.centroid.col  = realFrontier.centroid.col / realFrontier.numberOfElements;
 
-    // Berechne den Winkelunterschied zwischen zielfrontier und Roboterausrichtung (yaw)
+    // Berechne den Winkelunterschied zwischen Zielfrontier (minDistande) und Roboterausrichtung (yaw)
     // steering_angle = atan2(goal_pos_y - jackal_position_y, goal_pos_x - jackal_position_x);
     double steering_angle = atan2(realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].col - robotPos_col, 
-            realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].row - robotPos_row);
+                                  realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].row - robotPos_row);
     realFrontier.rotationAngle = steering_angle - robot_yaw;
+    std::cout << "realFrontier.rotationAngle = "<< realFrontier.rotationAngle << std::endl;
+
+    // Berechne den Winkelunterschied zwischen Zielfrontier (pseudoMidpoiont) und Roboterausrichtung (yaw)
+    // brauche das hier für die Kostenberechnung
+    steering_angle = atan2(realFrontier.connected_f_cells[realFrontier.pseudoMidPoint].col - robotPos_col, 
+                           realFrontier.connected_f_cells[realFrontier.pseudoMidPoint].row - robotPos_row);
+    realFrontier.angleToGoalPoint = steering_angle - robot_yaw;
+    std::cout << "realFrontier.angleToGoalPoint = "<< realFrontier.angleToGoalPoint << std::endl;
+    std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
 
     return realFrontier;
 }

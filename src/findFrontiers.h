@@ -20,8 +20,11 @@ struct Frontier {
                               // nach euklidischer Formel berechnen
     int idxOfMinDistance; // index of cell that contains the min distance to robot
 
-    double rotationAngle; // angle between closest point and robot view direction
+    double rotationAngle; // angle between closest point and robot view direction (Rotation)
 
+    double angleToGoalPoint; // winkel zwisch. Roboter und Zielpunkt (anfahren)
+    bool shouldRotate;
+    double cost;
 };
 
 std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchRegion);

@@ -10,10 +10,10 @@ nav_msgs::OccupancyGrid requestMap(ros::NodeHandle &nh){
 
     // dynamic map ist a service provided by gmapping: dynamic_map(mav_msgs/GetMap)
     while (!ros::service::waitForService("dynamic_map", ros::Duration(3.0))){ 
-        ROS_INFO("Wating for service dynamic map to become available\n");
+        ROS_INFO("Wating for service dynamic map to become available");
     }
 
-    ROS_INFO("Requesting the map..\n");
+    ROS_INFO("Requesting the map..");
     ros::ServiceClient mapClient = nh.serviceClient<nav_msgs::GetMap>("dynamic_map");
 
     if(mapClient.call(req, res)){
@@ -24,7 +24,7 @@ nav_msgs::OccupancyGrid requestMap(ros::NodeHandle &nh){
 
     }
     else{
-        ROS_ERROR("Failed to call map service\n");
+        ROS_ERROR("Failed to call map service");
     }
 }
 

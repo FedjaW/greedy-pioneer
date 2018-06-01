@@ -38,7 +38,7 @@ void updateRoboterPosition(const nav_msgs::Odometry::ConstPtr& pose_msg) {
 
 
 void updateCostmap(const nav_msgs::OccupancyGrid& costmap_msg) {
-    ROS_INFO("Received a %d X %d Costmap @ %.3f m/px\n", 
+    ROS_INFO("Received a %d X %d Costmap @ %.3f m/px", 
             costmap_msg.info.width,
             costmap_msg.info.height,
             costmap_msg.info.resolution);
