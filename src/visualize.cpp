@@ -4,22 +4,24 @@
 
 
 Visualizer::Visualizer() {};
+Visualizer::~Visualizer(){};
 // Visualizer::Visualizer(double scale_x, double scale_y, double scale_z) {
 //     double scale_x_ = scale_x_;
 //     double scale_y_ = scale_y_;
 //     double scale_z_ = scale_z_;
 // }
 
-int id; // KEINE AHNUNG warum das mit der id so klappt ?!??!?!?
+int id = 0; // KEINE AHNUNG warum das mit der id so klappt ?!??!?!?
 
 void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos, int r, int g, int b){
     
     ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray>(
-                                                                    "visualization_marker_array", 20);
+                                                                    "visualization_marker_array", 200);
 
     visualization_msgs::MarkerArray markers_msg;
     std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
     visualization_msgs::Marker m;
+
 
     m.action = visualization_msgs::Marker::ADD;
     m.type = visualization_msgs::Marker::SPHERE;
@@ -45,6 +47,36 @@ void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::
         m.id = id;
         markers.push_back(m);
         ++id;
+        // ROS_INFO("id aufbau = %d ", id);
+        // ros::Rate rate(100);
+        // rate.sleep(); 
+    }
+
+
+    while (marker_array_publisher.getNumSubscribers() < 1){
+        ROS_WARN_ONCE("Please create a subscriber to the marker");
+        sleep(0.2);
+    }
+    marker_array_publisher.publish(markers_msg);
+    ROS_INFO("MarkerArray wurde gesetzt");
+}
+
+
+
+void Visualizer::delteMarkerArray(ros::NodeHandle &nh) {
+    ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray>(
+                                                                    "visualization_marker_array", 200);
+
+    visualization_msgs::MarkerArray markers_msg;
+    std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
+    visualization_msgs::Marker m;
+    m.action = visualization_msgs::Marker::DELETE;
+    for (; id > 0; --id) {
+        ROS_INFO("id abbau = %d ", id);
+        // ros::Rate rate(50);
+        // rate.sleep(); 
+        m.id = id;
+        markers.push_back(m);
     }
     while (marker_array_publisher.getNumSubscribers() < 1){
         ROS_WARN_ONCE("Please create a subscriber to the marker");

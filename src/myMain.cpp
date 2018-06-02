@@ -1,7 +1,6 @@
 #include <ros/ros.h>
 #include "myGetMap.h"
 #include "visualize.h"
-//#include "holyWatcher.h"
 #include "findFrontiers.h"
 #include <thread>
 
@@ -10,13 +9,11 @@
 
 #include <algorithm> 
 
-// #include <geometry_msgs/Point.h>
 
 bool sortFunction(const Frontier& f1, const Frontier& f2) {
     return f1.cost < f2.cost;
 }
 
-#if 1
 int main (int argc, char **argv) {
     ros::init(argc, argv, "myGetMap");
     ros::NodeHandle nh;
@@ -38,9 +35,6 @@ int main (int argc, char **argv) {
     std::vector<geometry_msgs::Pose> myVizPos;
     geometry_msgs::Pose dummyPos;
 
-
-    // ROS_INFO("x: %f / y: %f", getRobotPos().x, getRobotPos().y);
-    //ROS_INFO("myRobot.yaw = %f", myRobot.yaw);
     geometry_msgs::Point myPoint;
     std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
     
@@ -50,11 +44,10 @@ int main (int argc, char **argv) {
     robotPos_col = kartesisch2grid(grid, robotPos_x, robotPos_y).col;
     robotPos_row = kartesisch2grid(grid, robotPos_x, robotPos_y).row;
     robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
-    // std::cout << "robot_yaw = " << robot_yaw << std::endl;
-    // _______________________________________________________________________
 
+
+    // baue Frontiers aus den f-zellen
     std::vector<Frontier> frontier_list = buildFrontiers(frontierCells);
-    
 
     // Kostenfunktion zuordnen!
     // Parameter der Kosten
@@ -91,7 +84,6 @@ int main (int argc, char **argv) {
                 rotationCost = - beta * frontier.numberOfElements + gamma * fabs(frontier.rotationAngle);
                 std::cout << "rotationCost = "<<  rotationCost << std::endl;
             }
-
         }
 
         if(drivingCost > rotationCost) {
@@ -176,27 +168,6 @@ int main (int argc, char **argv) {
     }
 
 
-// std::cout << "frontier_list[0].rotationAngle = " << frontier_list[0].rotationAngle << std::endl;
-
-// bool obstacle = isObstacleInViewField(nh,
-//                                         grid,
-//                                         robotPos_col, 
-//                                         robotPos_row,
-//                                         frontier_list[1].connected_f_cells[frontier_list[1].idxOfMinDistance].col, 
-//                                         frontier_list[1].connected_f_cells[frontier_list[1].idxOfMinDistance].row);
-
-
-
-// std::cout << "obstacle = " << obstacle << std::endl;
-
-// rotate(nh, frontier_list[0].rotationAngle);
-
-// myPoint = grid2Kartesisch(grid,
-//                             frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
-//                             frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
-
-// sendGoal(myPoint.x, myPoint.y);
-
 
     if(frontier_list[0].shouldRotate == 0) {
         myPoint = grid2Kartesisch(grid,
@@ -209,98 +180,7 @@ int main (int argc, char **argv) {
     }
 
 
-
-
-#if 0
-    std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
-    // Ohne das & (alias) funktinoert es nicht richtig! Warum ist das so???
-    int c = 0;
-    for(auto& frontierCell : frontierCells) {
-        myPoint = grid2Kartesisch(grid, frontierCell.row, frontierCell.col);
-        dummyPos.position.x = myPoint.x;
-        dummyPos.position.y = myPoint.y;
-        myVizPos.push_back(dummyPos);
-        c++;
-    }
-
-    std::cout << "c = " << c << std::endl;
-    std::cout << "myVizPos.Size() = " << myVizPos.size() << std::endl;
-#endif 
-    
-    // ros::spin();
     return 0;
 }
 
-#endif
 
-#if 0
-
-int main (int argc, char **argv) {
-
-   gridCell dummyCells; 
-    
-    std::vector<gridCell> frontierCells;
-
-    dummyCells.row = 2;
-    dummyCells.col = 2;
-    frontierCells.push_back(dummyCells);
-
-    dummyCells.row = 30;
-    dummyCells.col = 30;
-    frontierCells.push_back(dummyCells);
-    //-------------------------------------
-    dummyCells.row = 5;
-    dummyCells.col = 5;
-    frontierCells.push_back(dummyCells);
-
-    dummyCells.row = 3;
-    dummyCells.col = 3;
-    frontierCells.push_back(dummyCells);
-
-    dummyCells.row = 4;
-    dummyCells.col = 4;
-    frontierCells.push_back(dummyCells);
-    //-------------------------------------
-    dummyCells.row = 9;
-    dummyCells.col = 7;
-    frontierCells.push_back(dummyCells);
-    
-    dummyCells.row = 8;
-    dummyCells.col = 7;
-    frontierCells.push_back(dummyCells);
-
-    dummyCells.row = 10;
-    dummyCells.col = 8;
-    frontierCells.push_back(dummyCells);
-    //-------------------------------------
-    dummyCells.row = 100;
-    dummyCells.col = 100;
-    frontierCells.push_back(dummyCells);
-
-    dummyCells.row = 101;
-    dummyCells.col = 101;
-    frontierCells.push_back(dummyCells);
-
-    dummyCells.row = 102;
-    dummyCells.col = 102;
-    frontierCells.push_back(dummyCells);
-    //-------------------------------------
-    dummyCells.row = 6;
-    dummyCells.col = 6;
-    frontierCells.push_back(dummyCells);
-
-    std::cout << "sizeofvector = " << frontierCells.size() << std::endl;
-
-    std::vector<std::vector<gridCell> > frontier_list = frontierCellNhood(frontierCells);
-
-
-    for(auto& frontier : frontier_list) {
-        for(int i = 0; i < frontier.size(); i++) {
-            std::cout << "frontier[" <<i<< "]" << ".row = " << frontier[i].row << " / frontier[" <<i<< "]" << ".col = " << frontier[i].col << std::endl;
-        }
-        std::cout << "----------------------------" << std::endl;
-    }
-
-    return 0;
-}
-#endif

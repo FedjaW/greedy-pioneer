@@ -77,10 +77,9 @@ double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCandi
 
     ROS_INFO("Distanz = %f", distance);
     
-    myVisualizer2.setMarkerArray(nh, vizPos, 0,1,1);
-
-    id = vizPos.size()+1;
-    vizPos.clear();
+    // myVisualizer2.setMarkerArray(nh, vizPos, 0,1,1);
+    // id = vizPos.size()+1;
+    // vizPos.clear();
     
     return distance;
 
@@ -201,7 +200,7 @@ bool isObstacleInViewField(ros::NodeHandle &nh, const nav_msgs::OccupancyGrid& m
         if (e2 > dy) { err += dy; x0 += sx; } // e_xy+e_x > 0 
         if (e2 < dx) { err += dx; y0 += sy; } // e_xy+e_y < 0 
 
-        if (costmap_grid_vec[x0][y0] > 100) { 
+        if (costmap[x0][y0] > 10) { 
             myVisualizer3.setMarkerArray(nh, vizPos, 1,1,0);
             id = vizPos.size()+1;
             vizPos.clear();

@@ -19,14 +19,16 @@ double robot_yaw; // =  getRobotPosInMapFrame().
 
 // searchRegion is for now the entiry Map
 std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchRegion) {
-int k = 0;
+    int k = 0;
     std::vector<gridCell> frontierCells;
     gridCell myFrontierCell;
 
+    // std::cout << "suchregion.size() = "<< searchRegion.size() << std::endl;
+    // std::cout << "suchregion[0].size() = "<< searchRegion[0].size() << std::endl;
     for(int i = searchRegion.size() - 1; i>= 0 ; i--){      // durchsuche ganze Karte
         for(int j = 0; j < searchRegion[0].size(); j++){
 
-            if(searchRegion[i][j] == 0 && costmap_grid_vec[i][j] == 0) { // prüfen ob Zelle frei ist
+            if(searchRegion[i][j] == 0 && costmap[i][j] == 0) { // prüfen ob Zelle frei ist
 
                 if(searchRegion[i+1][j] == -1){ // prüfen ob der Nachbar unbekannt ist
                     myFrontierCell.row = j;

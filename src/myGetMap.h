@@ -40,6 +40,8 @@ robotPose getRobotPos(/*ros::NodeHandle &nh*/);
 // Costmap von Move_base auslesen. Damit keine Ziele nah an dem Gegenständen
 // gewählt werden
 std::vector<std::vector<int> > getCostmap();
+std::vector<std::vector<int> > getGridMap();
+nav_msgs::OccupancyGrid getGrid();
 
 
 // void OdomCallback(const nav_msgs::Odometry::ConstPtr& pose_msg);

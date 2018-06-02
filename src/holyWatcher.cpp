@@ -11,13 +11,95 @@
 
 
 robotPose roboterPosition;
-std::vector<std::vector<int> > costmap_grid_vec;
+std::vector<std::vector<int> > costmap;
+// std::vector<std::vector<int> > costmap_upd;
+std::vector<std::vector<int> > gridMap;
+nav_msgs::OccupancyGrid grid;
 
-//position getCurrentPos() {
-	// ROS_INFO("TESTPUNKT 23");
-	//cout << roboterPosition.x << " / " << roboterPosition.y << endl;
-	//return roboterPosition;
-//}
+void updateGridMap(const nav_msgs::OccupancyGrid& map){
+    // ROS_INFO("Received a %d X %d GridMap @ %.3f m/px", 
+    //         map.info.width,
+    //         map.info.height,
+    //         map.info.resolution);
+
+    int rows = map.info.height;
+    int cols = map.info.width;
+    double mapResolution = map.info.resolution;
+
+    std::vector<std::vector<int> > grid_vec;
+
+    // Dynamically resize the Grid
+    grid_vec.resize(rows);
+    for (int i = 0; i < rows ; i++){
+        grid_vec[i].resize(cols);
+    }
+
+    int currCell = 0;
+    for (int i = 0; i < rows; i++){
+        for(int j = 0; j < cols; j++){
+            grid_vec[i][j] = map.data[currCell];
+            currCell++;
+        }
+    }
+    grid = map;
+    gridMap = grid_vec;
+}
+
+
+void updateCostmap(const nav_msgs::OccupancyGrid& costmap_msg) {
+    // ROS_INFO("Received a %d X %d Costmap @ %.3f m/px", 
+    //         costmap_msg.info.width,
+    //         costmap_msg.info.height,
+    //         costmap_msg.info.resolution);
+
+    int rows_cost = costmap_msg.info.height;
+    int cols_cost = costmap_msg.info.width;
+    double mapResolution_cost = costmap_msg.info.resolution;
+
+    std::vector<std::vector<int> > costmap_grid_vec;
+    // Dynamically resize the Grid
+    costmap_grid_vec.resize(rows_cost);
+    for (int i = 0; i < rows_cost ; i++){
+        costmap_grid_vec[i].resize(cols_cost);
+    }
+
+    int currCell = 0;
+    for (int i = 0; i < rows_cost; i++){
+        for(int j = 0; j < cols_cost; j++){
+            costmap_grid_vec[i][j] = costmap_msg.data[currCell];
+            currCell++;
+        }
+    }
+    costmap = costmap_grid_vec;
+
+}
+
+// void update_callback(const map_msgs::OccupancyGridUpdate& costmapUpdate) {
+//     ROS_INFO("Received a %d X %d UPDATECOSTMAP", 
+//             costmapUpdate.width,
+//             costmapUpdate.height);
+//
+//     int rows_cost = costmapUpdate.height;
+//     int cols_cost = costmapUpdate.width;
+//
+//     std::vector<std::vector<int> > costmap_update_vec;
+//     // Dynamically resize the Grid
+//     costmap_update_vec.resize(rows_cost);
+//     for (int i = 0; i < rows_cost ; i++){
+//         costmap_update_vec[i].resize(cols_cost);
+//     }
+//
+//     int currCell = 0;
+//     for (int i = 0; i < rows_cost; i++){
+//         for(int j = 0; j < cols_cost; j++){
+//             costmap_update_vec[i][j] = costmapUpdate.data[currCell];
+//             currCell++;
+//         }
+//     }
+//     costmap_upd = costmap_update_vec;
+//
+// }
+//
 
 void updateRoboterPosition(const nav_msgs::Odometry::ConstPtr& pose_msg) {
 
@@ -37,31 +119,7 @@ void updateRoboterPosition(const nav_msgs::Odometry::ConstPtr& pose_msg) {
 }
 
 
-void updateCostmap(const nav_msgs::OccupancyGrid& costmap_msg) {
-    ROS_INFO("Received a %d X %d Costmap @ %.3f m/px", 
-            costmap_msg.info.width,
-            costmap_msg.info.height,
-            costmap_msg.info.resolution);
 
-    int rows_cost = costmap_msg.info.height;
-    int cols_cost = costmap_msg.info.width;
-    double mapResolution_cost = costmap_msg.info.resolution;
-
-    // Dynamically resize the Grid
-    costmap_grid_vec.resize(rows_cost);
-    for (int i = 0; i < rows_cost ; i++){
-        costmap_grid_vec[i].resize(cols_cost);
-    }
-
-    int currCell = 0;
-    for (int i = 0; i < rows_cost; i++){
-        for(int j = 0; j < cols_cost; j++){
-            costmap_grid_vec[i][j] = costmap_msg.data[currCell];
-            currCell++;
-        }
-    }
-
-}
 
 void startPositionWatcher() {
 
@@ -71,8 +129,13 @@ void startPositionWatcher() {
                                                         updateRoboterPosition);
 
     ros::Subscriber sub = nodeHandle.subscribe("/move_base/global_costmap/costmap",
-                                        10, 
-                                        updateCostmap); // costmap
+                                                10, 
+                                                updateCostmap); // costmap
 
+// ros::Subscriber costmap_update_sub = nodeHandle.subscribe("move_base/global_costmap/costmap_updates", 10, update_callback);
+
+    ros::Subscriber sub2 = nodeHandle.subscribe("/map",
+                                                10, 
+                                                updateGridMap);
     ros::spin();
 }

@@ -94,9 +94,16 @@ robotPose getRobotPos() {
 // getCostmap
 std::vector<std::vector<int> > getCostmap() {
     
-    return costmap_grid_vec;
+    return costmap;
 }
 
+std::vector<std::vector<int> > getGridMap() {
+    return gridMap;
+}
+
+nav_msgs::OccupancyGrid getGrid(){
+    return grid;
+}
 
 
 
