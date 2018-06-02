@@ -11,17 +11,18 @@ Visualizer::~Visualizer(){};
 //     double scale_z_ = scale_z_;
 // }
 
-int id = 0; // KEINE AHNUNG warum das mit der id so klappt ?!??!?!?
+int id; // KEINE AHNUNG warum das mit der id so klappt ?!??!?!?
 
-void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos, int r, int g, int b){
+void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos, int r, int g, int b, bool deleteArray){
     
     ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray>(
                                                                     "visualization_marker_array", 200);
 
+        sleep(0.2);
+        sleep(0.2);
     visualization_msgs::MarkerArray markers_msg;
     std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
     visualization_msgs::Marker m;
-
 
     m.action = visualization_msgs::Marker::ADD;
     m.type = visualization_msgs::Marker::SPHERE;
@@ -41,6 +42,8 @@ void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::
     m.color.a = 1;
     // m.lifetime = ros::Duration(0);
     // m.frame_locked = true;
+    if(deleteArray == 0) {
+
     for(int i = 0; i < vizPos.size(); i++){
         m.pose.position.x = vizPos[i].position.x;
         m.pose.position.y = vizPos[i].position.y;
@@ -58,30 +61,66 @@ void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::
         sleep(0.2);
     }
     marker_array_publisher.publish(markers_msg);
-    ROS_INFO("MarkerArray wurde gesetzt");
-}
+    ros::spinOnce();
+    ros::Rate rate(1);
+    rate.sleep();
+    ROS_INFO("MarkerArray gesetzt");
 
+    }
+
+    if(deleteArray == 1) {
+
+    ROS_INFO("sleep");
+    ros::Rate rate(1);
+    rate.sleep();
+    rate.sleep();
+    rate.sleep();
+    rate.sleep();
+    ROS_INFO("sleepend");
+
+    for (int i = 0; i < id; i++) {
+        m.id = i;
+        markers.push_back(m);
+    }
+    marker_array_publisher.publish(markers_msg);
+    id = 0;
+    ROS_INFO("MarkerArray gelöscht");
+    ROS_INFO("sleep");
+    rate.sleep();
+    rate.sleep();
+    rate.sleep();
+    rate.sleep();
+    ROS_INFO("sleepend");
+    }
+}
 
 
 void Visualizer::delteMarkerArray(ros::NodeHandle &nh) {
     ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray>(
                                                                     "visualization_marker_array", 200);
 
+        sleep(0.2);
+        sleep(0.2);
     visualization_msgs::MarkerArray markers_msg;
     std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
     visualization_msgs::Marker m;
     m.action = visualization_msgs::Marker::DELETE;
-    for (; id > 0; --id) {
-        ROS_INFO("id abbau = %d ", id);
-        // ros::Rate rate(50);
-        // rate.sleep(); 
-        m.id = id;
+        ROS_INFO("id_delete = %d ", id);
+    for (int i = 0; i < id; i++) {
+        m.id = i;
         markers.push_back(m);
     }
+
+        ROS_INFO("id_delete2 = %d ", id);
+
     while (marker_array_publisher.getNumSubscribers() < 1){
         ROS_WARN_ONCE("Please create a subscriber to the marker");
         sleep(0.2);
     }
     marker_array_publisher.publish(markers_msg);
-    ROS_INFO("MarkerArray wurde gesetzt");
+    ROS_INFO("MarkerArray gelöscht");
+    ros::spinOnce();
+    ros::Rate rate(1);
+    rate.sleep();
+
 }

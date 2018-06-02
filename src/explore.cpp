@@ -94,7 +94,6 @@ bool exploration(ros::NodeHandle &nh) {
     }
 
     Visualizer myVisualize;
-
     int r = 0;
     int g = 0;
     int b = 0;
@@ -149,7 +148,7 @@ bool exploration(ros::NodeHandle &nh) {
             myVizPos.push_back(dummyPos);
         }
 
-        myVisualize.setMarkerArray(nh, myVizPos, r,g,b);
+        myVisualize.setMarkerArray(nh, myVizPos, r,g,b,0);
         // id = myVizPos.size()+1;
         myVizPos.clear();
     }
@@ -163,7 +162,10 @@ bool exploration(ros::NodeHandle &nh) {
     else {
         rotate(nh, frontier_list[0].rotationAngle);
     }
-    myVisualize.delteMarkerArray(nh);
+
+        myVisualize.setMarkerArray(nh, myVizPos, r,g,b,1);
+    // myVisualize.delteMarkerArray(nh);
+
     // NOTE: Kp ob ich das brauche
     frontierCells.erase(frontierCells.begin(), frontierCells.end());
     frontier_list.erase(frontier_list.begin(), frontier_list.end());

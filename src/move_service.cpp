@@ -201,7 +201,7 @@ bool isObstacleInViewField(ros::NodeHandle &nh, const nav_msgs::OccupancyGrid& m
         if (e2 < dx) { err += dx; y0 += sy; } // e_xy+e_y < 0 
 
         if (costmap[x0][y0] > 10) { 
-            myVisualizer3.setMarkerArray(nh, vizPos, 1,1,0);
+            myVisualizer3.setMarkerArray(nh, vizPos, 1,1,0,0);
             id = vizPos.size()+1;
             vizPos.clear();
             return true;
@@ -209,7 +209,7 @@ bool isObstacleInViewField(ros::NodeHandle &nh, const nav_msgs::OccupancyGrid& m
         }
     }
 
-    myVisualizer3.setMarkerArray(nh, vizPos, 1,1,0);
+    myVisualizer3.setMarkerArray(nh, vizPos, 1,1,0,0);
     id = vizPos.size()+1;
     vizPos.clear();
 

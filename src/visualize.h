@@ -17,7 +17,7 @@ class Visualizer{
         // Visualizer(double scale_x, double scale_y, double scale_z);
         Visualizer();
         ~Visualizer();
-        void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos, int r, int g, int b);
+        void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos, int r, int g, int b, bool deleteArray);
         // void setMarker();
         void delteMarkerArray(ros::NodeHandle &nh);
 };
