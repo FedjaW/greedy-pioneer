@@ -84,9 +84,9 @@ distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Po
     
     ROS_INFO("Distanz = %f", distance);
     distAndSteer.distance = distance;
-    // myVisualizer2.setMarkerArray(nh, vizPos, 0,1,1);
+    myVisualizer2.setMarkerArray(nh, vizPos, 0,1,1,0);
     // id = vizPos.size()+1;
-    // vizPos.clear();
+    vizPos.clear();
     
     return distAndSteer;
 
@@ -150,7 +150,7 @@ void rotate(ros::NodeHandle &nh, double rotation_angle) {
 
  
 
-void sendGoal(double x, double y, double theta) {
+void sendGoal(double x, double y, double radians) {
   //tell the action client that we want to spin a thread by default
   MoveBaseClient ac("move_base", true);
 
@@ -170,7 +170,7 @@ void sendGoal(double x, double y, double theta) {
   // goal.target_pose.pose.orientation.w = orientation;
 
   // Convert the Euler angle to quaternion
-  double radians = theta * (M_PI/180);
+  // double radians = theta * (M_PI/180);
   tf::Quaternion quaternion;
   quaternion = tf::createQuaternionFromYaw(radians);
 
