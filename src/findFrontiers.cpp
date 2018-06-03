@@ -8,7 +8,7 @@
 // Minimum size that a Frontier should have to be accepted as valid Frontier
 // Size is the Number of neighbour-gridCells;
 // TODO: Calculate the lenght out of Size -> with cell resolution
-const unsigned int frontierMinSize = 20;
+const unsigned int frontierMinSize = 50;
 
 // Diese Variablen brauche ich buildFrontier()
 // Habe sie global gemacht da ich nicht weiß

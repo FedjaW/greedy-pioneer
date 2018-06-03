@@ -19,7 +19,7 @@ class Visualizer{
         ~Visualizer();
         void setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos, int r, int g, int b, bool deleteArray);
         // void setMarker();
-        void delteMarkerArray(ros::NodeHandle &nh);
+        void deleteMarkerArray(ros::NodeHandle &nh);
 };
 
 #endif

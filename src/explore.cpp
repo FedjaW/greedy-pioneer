@@ -135,9 +135,9 @@ bool exploration(ros::NodeHandle &nh) {
             b = 1;
         }
         else if((r == 1) && (g == 1) && (b == 1)) {
-            r = 2;
+            r = 0.5;
             g = 1;
-            b = 2;
+            b = 0.1;
         }
         for(int i = 0; i < frontier.connected_f_cells.size(); i++) {
             myPoint = grid2Kartesisch(grid, 
@@ -163,12 +163,12 @@ bool exploration(ros::NodeHandle &nh) {
         rotate(nh, frontier_list[0].rotationAngle);
     }
 
-        myVisualize.setMarkerArray(nh, myVizPos, r,g,b,1);
-    // myVisualize.delteMarkerArray(nh);
+    myVisualize.setMarkerArray(nh, myVizPos, r,g,b,1); // delete ALL markerArrays
+    // myVisualize.deleteMarkerArray(nh);
 
     // NOTE: Kp ob ich das brauche
-    frontierCells.erase(frontierCells.begin(), frontierCells.end());
-    frontier_list.erase(frontier_list.begin(), frontier_list.end());
+    frontierCells.clear();
+    frontier_list.clear();
     return true;
 }
 
