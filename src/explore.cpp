@@ -50,7 +50,10 @@ bool exploration(ros::NodeHandle &nh) {
         myPoint = grid2Kartesisch(grid,
                                   frontier.connected_f_cells[frontier.pseudoMidPoint].row, 
                                   frontier.connected_f_cells[frontier.pseudoMidPoint].col);
-        double distance2Frontier = getDistanceToFrontier(nh, myPoint); //TODO: was ist wenn Zielpunkt nicht erreichbar ist 
+
+        distanceAndSteering distAndSteer = getDistanceToFrontier(nh, myPoint); //TODO: was ist wenn Zielpunkt nicht erreichbar ist
+        double distance2Frontier =  distAndSteer.distance;
+        frontier.goalSteeringAngle = distAndSteer.goalSteeringAngle;
 
         double rotationCost = 100000; // sehr hoch wählen!!! 
         double drivingCost = + alpha * distance2Frontier 
@@ -157,7 +160,7 @@ bool exploration(ros::NodeHandle &nh) {
         myPoint = grid2Kartesisch(grid,
                                   frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
                                   frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
-        sendGoal(myPoint.x, myPoint.y, 1);
+        sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle);
     }
     else {
         rotate(nh, frontier_list[0].rotationAngle);
@@ -176,18 +179,18 @@ bool exploration(ros::NodeHandle &nh) {
 
 // MAIN FUNKTION__________________________________
 int main(int argc, char **argv) {
+
     ros::init(argc, argv, "explore");
     ros::NodeHandle nh;
 
     std::thread watcherThread(startPositionWatcher);
 
-     ros::Rate rate(10);
-     rate.sleep(); // warte kurz bis die Callbacks im anderen thread
-     rate.sleep(); // aufgerufen wurden und Daten vorliegen
-     rate.sleep(); // TODO: schöner lösen !!!
+    ros::Rate rate(10);
+    rate.sleep(); // warte kurz bis die Callbacks im anderen thread
+    rate.sleep(); // aufgerufen wurden und Daten vorliegen
+    rate.sleep(); // TODO: schöner lösen !!!
 
-    while(1) {
-        exploration(nh);
-    }
-     return 0;
+    while(exploration(nh));
+
+    return 0;
 }

@@ -17,9 +17,8 @@
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
-
 // void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
-double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
+distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
     geometry_msgs::PoseStamped Start;
     Start.header.seq = 0;
     Start.header.stamp = ros::Time(0);
@@ -60,6 +59,14 @@ double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCandi
     double distance = 0;
     float myX_old, myY_old = 0;
     int path_size = srv.response.plan.poses.size();
+    distanceAndSteering distAndSteer;
+    distAndSteer.goalSteeringAngle  = atan2(
+                                      srv.response.plan.poses[path_size-1].pose.position.y - 
+                                      srv.response.plan.poses[path_size-5].pose.position.y, 
+                                      srv.response.plan.poses[path_size-1].pose.position.x - 
+                                      srv.response.plan.poses[path_size-5].pose.position.x);
+    
+    ROS_INFO("goalSteeringAngle = %f", distAndSteer.goalSteeringAngle);
     geometry_msgs::PoseStamped myPose;
     for(int i = 0; i < path_size-1; i++) {
         myPose = srv.response.plan.poses[i];
@@ -74,14 +81,14 @@ double getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCandi
         myY_old = myY;
         vizPos.push_back(myPose.pose);
     }
-
-    ROS_INFO("Distanz = %f", distance);
     
+    ROS_INFO("Distanz = %f", distance);
+    distAndSteer.distance = distance;
     // myVisualizer2.setMarkerArray(nh, vizPos, 0,1,1);
     // id = vizPos.size()+1;
     // vizPos.clear();
     
-    return distance;
+    return distAndSteer;
 
 }
 
@@ -143,7 +150,7 @@ void rotate(ros::NodeHandle &nh, double rotation_angle) {
 
  
 
-void sendGoal(double x, double y, double orientation) {
+void sendGoal(double x, double y, double theta) {
   //tell the action client that we want to spin a thread by default
   MoveBaseClient ac("move_base", true);
 
@@ -160,7 +167,18 @@ void sendGoal(double x, double y, double orientation) {
 
   goal.target_pose.pose.position.x = x;
   goal.target_pose.pose.position.y = y;
-  goal.target_pose.pose.orientation.w = orientation;
+  // goal.target_pose.pose.orientation.w = orientation;
+
+  // Convert the Euler angle to quaternion
+  double radians = theta * (M_PI/180);
+  tf::Quaternion quaternion;
+  quaternion = tf::createQuaternionFromYaw(radians);
+
+  geometry_msgs::Quaternion qMsg;
+  tf::quaternionTFToMsg(quaternion, qMsg);
+
+  goal.target_pose.pose.orientation = qMsg;
+
 
   ROS_INFO("Sending goal to navigation planner");
   ac.sendGoal(goal);

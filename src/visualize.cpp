@@ -14,12 +14,12 @@ Visualizer::~Visualizer(){};
 int id; // KEINE AHNUNG warum das mit der id so klappt ?!??!?!?
 
 void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos, int r, int g, int b, bool deleteArray){
-    
-static ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::MarkerArray>(
-                                                                    "visualization_marker_array", 200);
+   // static, damit der Publisher nur einmal initialisiert werden muss! 
+   // kostest sonst zuviel zeit und er löscht nicht ordentlich (Grund unbekannt)
+    static ros::Publisher marker_array_publisher = nh.advertise
+                                                    <visualization_msgs::MarkerArray>(
+                                                    "visualization_marker_array", 10);
 
-        // sleep(0.2);
-        // sleep(0.2);
     visualization_msgs::MarkerArray markers_msg;
     std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
     visualization_msgs::Marker m;
@@ -54,20 +54,10 @@ static ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::
             sleep(0.2);
         }
         marker_array_publisher.publish(markers_msg);
-        // ros::spinOnce();
-        // ros::Rate rate(1);
-        // rate.sleep();
         ROS_INFO("MarkerArray gesetzt");
     }
 
     if(deleteArray == 1) {
-        // ROS_INFO("sleep");
-        // rate.sleep();
-        // rate.sleep();
-        // rate.sleep();
-        // rate.sleep();
-        // ROS_INFO("sleepend");
-
         m.action = visualization_msgs::Marker::DELETE;
         for (int i = 0; i < id; i++) {
             m.id = i;
@@ -75,26 +65,15 @@ static ros::Publisher marker_array_publisher = nh.advertise<visualization_msgs::
         }
         marker_array_publisher.publish(markers_msg);
         id = 0;
-        // ROS_INFO("sleep");
-        ROS_INFO("Wait until all Markers are deleted");
-        // ros::spinOnce();
-        // ros::Rate rate(1);
-        // rate.sleep();
-        // ros::Rate rate(1);
-        // rate.sleep();
-        // rate.sleep();
-        // rate.sleep();
-        // rate.sleep();
         ROS_INFO("MarkerArray gelöscht");
-        // ROS_INFO("sleepend");
     }
 }
 
 
 void Visualizer::deleteMarkerArray(ros::NodeHandle &nh) {
 
-// static ros::Publisher marker_array_publisher2 = nh.advertise<visualization_msgs::MarkerArray>(
-//                                                                     "visualization_marker_array", 200);
+ ros::Publisher marker_array_publisher2 = nh.advertise<visualization_msgs::MarkerArray>(
+                                                                    "visualization_marker_array", 200);
     visualization_msgs::MarkerArray markers_msg;
     std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
     visualization_msgs::Marker m;

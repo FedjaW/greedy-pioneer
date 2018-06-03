@@ -25,6 +25,8 @@ struct Frontier {
     double angleToGoalPoint; // winkel zwisch. Roboter und Zielpunkt (anfahren)
     bool shouldRotate;
     double cost;
+
+    double goalSteeringAngle;
 };
 
 std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchRegion);
