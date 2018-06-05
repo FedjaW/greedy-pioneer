@@ -77,7 +77,7 @@ bool exploration(ros::NodeHandle &nh) {
 
                 if(!obstacle) {
                     // wenn die obigen 3 Bedingungen (if's) nicht erfüllt sind
-                    // bleibt die rotationCost so hoch dass automatisch shouldRotate fals bleibt 
+                    // bleibt die rotationCost so hoch dass automatisch shouldRotate = false bleibt 
                     rotationCost = - beta * frontier.numberOfElements + gamma * fabs(frontier.rotationAngle);
                     std::cout << "rotationCost = "<<  rotationCost << std::endl;
                 }

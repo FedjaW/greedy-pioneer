@@ -29,6 +29,9 @@ void updateCostmap(const nav_msgs::OccupancyGrid& costmap_msg);
 void updateGridMap(const nav_msgs::OccupancyGrid& map);
 // void update_callback(const map_msgs::OccupancyGridUpdate& costmapUpdate);
 void startPositionWatcher();
+void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map);
+void printToFile(double area, double time);
+void calculateDistanceTraveled();
 
 
 

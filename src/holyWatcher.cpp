@@ -3,6 +3,7 @@
 #include "angles/angles.h"
 #include "tf/transform_broadcaster.h"
 #include <ros/ros.h>
+#include <fstream>
 
 /* struct position {
     float x;
@@ -43,7 +44,35 @@ void updateGridMap(const nav_msgs::OccupancyGrid& map){
     }
     grid = map;
     gridMap = grid_vec;
+
+
+    calculateExploratedAreaOverTime(map);
+
 }
+
+void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map) {
+    int cellsInMap = map.info.width * map.info.height;
+    int exploredCells = 0;
+    for(int i = 0; i < cellsInMap; i++) {
+        if(map.data[i] == 0) {
+            exploredCells++;
+        }
+    }
+    double area = exploredCells * map.info.resolution * map.info.resolution;
+    static double initial_time = ros::Time::now().toSec();
+    double time = ros::Time::now().toSec() - initial_time;
+    std::cout << "area = "<< area << " / time = " << time << std::endl;
+    printToFile(area, time);
+}
+
+
+void printToFile(double area, double time) {
+    std::ofstream myFile;
+    if(!myFile.is_open())
+        myFile.open("AreaOvertime.txt", std::ios::app);
+    myFile << area << " , "<< time << std::endl;;
+}
+
 
 
 void updateCostmap(const nav_msgs::OccupancyGrid& costmap_msg) {
@@ -116,8 +145,24 @@ void updateRoboterPosition(const nav_msgs::Odometry::ConstPtr& pose_msg) {
     roboterPosition.x = pose_msg->pose.pose.position.x;
     roboterPosition.y = pose_msg->pose.pose.position.y;
 
+    calculateDistanceTraveled();
 }
 
+
+
+
+void calculateDistanceTraveled() {
+    static robotPose oldRoboterPosition = roboterPosition;
+    static double distanceTraveled = 0;
+    double newDistance = sqrt(pow(roboterPosition.x - oldRoboterPosition.x,2)+
+                              pow(roboterPosition.y - oldRoboterPosition.y,2));
+    if(newDistance > 0.01) // die if Abfrage dient um das Gitter zu filtern! 
+        distanceTraveled = distanceTraveled + newDistance;
+    oldRoboterPosition = roboterPosition;
+    static double initial_time2 = ros::Time::now().toSec();
+    double time = ros::Time::now().toSec() - initial_time2;
+    std::cout << "distanceTraveled = "<< distanceTraveled << " / time = " << time << std::endl;
+}
 
 
 
@@ -137,5 +182,6 @@ void startPositionWatcher() {
     ros::Subscriber sub2 = nodeHandle.subscribe("/map",
                                                 10, 
                                                 updateGridMap);
+
     ros::spin();
 }
