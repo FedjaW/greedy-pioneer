@@ -162,9 +162,9 @@ add_executable(make_plan_service src/make_plan_service.cpp)
 target_link_libraries(make_plan_service ${catkin_LIBRARIES})
 add_dependencies(make_plan_service greedy_pioneer_generate_message_cpp)
 
-add_executable(myGetMap src/myMain.cpp src/myGetMap.cpp src/visualize.cpp src/holyWatcher.cpp src/findFrontiers.cpp src/move_service.cpp)
-add_dependencies(myGetMap greedy_pioneer_generate_message_cpp)
-target_link_libraries(myGetMap ${catkin_LIBRARIES})
+add_executable(rotation_exploration src/explore.cpp src/myGetMap.cpp src/visualize.cpp src/holyWatcher.cpp src/findFrontiers.cpp src/move_service.cpp)
+add_dependencies(rotation_exploration greedy_pioneer_generate_message_cpp)
+target_link_libraries(rotation_exploration ${catkin_LIBRARIES})
 
 # add_executable(FrontierSearcher src/FrontierSearcher.cpp)
 # add_dependencies(FrontierSearcher greedy_pioneer_generate_message_cpp)

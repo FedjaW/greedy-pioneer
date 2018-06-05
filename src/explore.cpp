@@ -42,7 +42,8 @@ bool exploration(ros::NodeHandle &nh) {
     const double alpha = 20.0;
     const double beta = 1.0;
     const double gamma = 10.0;
-    const double laser_radius = 0;
+    const double laser_radius = 5;
+    const double FOV = 4.71238; // Field of View in radians
 
     for(auto& frontier : frontier_list) {
         // std::cout << "frontier.centroid.row = " << frontier.centroid.row << std::endl;
@@ -52,11 +53,11 @@ bool exploration(ros::NodeHandle &nh) {
                                   frontier.connected_f_cells[frontier.pseudoMidPoint].col);
 
         distanceAndSteering distAndSteer = getDistanceToFrontier(nh, myPoint); //TODO: was ist wenn Zielpunkt nicht erreichbar ist
-        double distance2Frontier =  distAndSteer.distance;
+        frontier.distance2Frontier =  distAndSteer.distance;
         frontier.goalSteeringAngle = distAndSteer.goalSteeringAngle;
 
         double rotationCost = 100000; // sehr hoch wählen!!! 
-        double drivingCost = + alpha * distance2Frontier 
+        double drivingCost = + alpha * frontier.distance2Frontier 
                              - beta * frontier.numberOfElements 
                              + gamma * fabs(frontier.angleToGoalPoint);
         std::cout << "drivingCost = "<<  drivingCost << std::endl;
@@ -71,10 +72,21 @@ bool exploration(ros::NodeHandle &nh) {
 
             std::cout << "obstacle = " << obstacle << std::endl;
 
-            if(!obstacle) {
-                rotationCost = - beta * frontier.numberOfElements + gamma * fabs(frontier.rotationAngle);
-                std::cout << "rotationCost = "<<  rotationCost << std::endl;
+            if(abs(frontier.rotationAngle) >= FOV/2) { // >= damit der Randbereich auch an-rotiert wird
+                std::cout << "Frontier liegt außerhalb der Sicht" << std::endl;
+
+                if(!obstacle) {
+                    // wenn die obigen 3 Bedingungen (if's) nicht erfüllt sind
+                    // bleibt die rotationCost so hoch dass automatisch shouldRotate fals bleibt 
+                    rotationCost = - beta * frontier.numberOfElements + gamma * fabs(frontier.rotationAngle);
+                    std::cout << "rotationCost = "<<  rotationCost << std::endl;
+                }
+            }else {
+                std::cout << "Frontier liegt bereits in Sicht" << std::endl;
             }
+        
+        }else {
+                std::cout << "Closest Point liegt nicht in Laser Reichweite" << std::endl;
         }
 
         if(drivingCost > rotationCost) {
@@ -87,6 +99,7 @@ bool exploration(ros::NodeHandle &nh) {
         }
         std::cout << "cost = "<<  frontier.cost << " / " << "shouldRotate = " << frontier.shouldRotate << std::endl;
     }
+
     std::cout << "--------------------------------------------------------------" << std::endl;
 
     // Frontiers nach Konsten sortieren. Günstgigestes als erstes
@@ -160,7 +173,7 @@ bool exploration(ros::NodeHandle &nh) {
         myPoint = grid2Kartesisch(grid,
                                   frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
                                   frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
-        sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle);
+        sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
     }
     else {
         rotate(nh, frontier_list[0].rotationAngle);

@@ -150,7 +150,7 @@ void rotate(ros::NodeHandle &nh, double rotation_angle) {
 
  
 
-void sendGoal(double x, double y, double radians) {
+void sendGoal(double x, double y, double radians, double distanceToGoal) {
   //tell the action client that we want to spin a thread by default
   MoveBaseClient ac("move_base", true);
 
@@ -181,7 +181,14 @@ void sendGoal(double x, double y, double radians) {
 
 
   ROS_INFO("Sending goal to navigation planner");
-  ac.sendGoal(goal);
+  // ac.sendGoal(goal);
+  // time = distance / velocity
+  // max velocity of Jackal = 2m/s
+  // but messuared only 0.5 m/s
+  double timeToDrive = distanceToGoal / 0.5;
+  ac.sendGoalAndWait(goal, ros::Duration(timeToDrive), ros::Duration(1));
+
+  ROS_INFO("Abgebrochen ???");
 
   ac.waitForResult();
 

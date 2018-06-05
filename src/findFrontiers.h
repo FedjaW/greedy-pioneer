@@ -26,7 +26,9 @@ struct Frontier {
     bool shouldRotate;
     double cost;
 
-    double goalSteeringAngle;
+    double goalSteeringAngle; // Richtung in die der Roboter bei erreichen des Ziel schaut! (nach fahrt)
+
+    double distance2Frontier;
 };
 
 std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchRegion);
