@@ -32,18 +32,19 @@ bool exploration(ros::NodeHandle &nh) {
     robotPos_row = kartesisch2grid(grid, robotPos_x, robotPos_y).row;
     robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
 
-
     // baue Frontiers aus den f-zellen
     std::vector<Frontier> frontier_list = buildFrontiers(frontierCells);
     if(frontier_list.empty()) return false;
 
     // Kostenfunktion zuordnen!
     // Parameter der Kosten
-    const double alpha = 20.0;
-    const double beta = 1.0;
-    const double gamma = 10.0;
+    const double alpha = 0.6;
+    const double beta = 0.3;
+    const double gamma = 0.1;
     const double laser_radius = 5;
     const double FOV = 4.71238; // Field of View in radians
+    double maxDistance = 0;
+    double maxNumberOfElements = 0;
 
     for(auto& frontier : frontier_list) {
         // std::cout << "frontier.centroid.row = " << frontier.centroid.row << std::endl;
@@ -56,10 +57,22 @@ bool exploration(ros::NodeHandle &nh) {
         frontier.distance2Frontier =  distAndSteer.distance;
         frontier.goalSteeringAngle = distAndSteer.goalSteeringAngle;
 
+        
+        // update die max. werte für die relationsberechnung in der Kostenfunktion live (online)
+        if(frontier.distance2Frontier > maxDistance)
+            maxDistance = frontier.distance2Frontier;
+        if(frontier.numberOfElements > maxNumberOfElements)
+            maxNumberOfElements = frontier.numberOfElements;
+
+        // std::cout << "frontier.distance2Frontier = "<< frontier.distance2Frontier << std::endl;
+        // std::cout << "maxDistance = "<< maxDistance << std::endl;
+        // std::cout << "frontier.numberOfElements = "<< frontier.numberOfElements << std::endl;
+        // std::cout << "maxNumberOfElements = "<< maxNumberOfElements << std::endl;
+
         double rotationCost = 100000; // sehr hoch wählen!!! 
-        double drivingCost = + alpha * frontier.distance2Frontier 
-                             - beta * frontier.numberOfElements 
-                             + gamma * fabs(frontier.angleToGoalPoint);
+        double drivingCost = + alpha * (frontier.distance2Frontier / maxDistance)
+                             - beta * (frontier.numberOfElements / maxNumberOfElements)
+                             + gamma * (fabs(frontier.angleToGoalPoint) - (FOV/2)) / M_PI;
         std::cout << "drivingCost = "<<  drivingCost << std::endl;
 
         if(frontier.directMinDistance < laser_radius) {
@@ -168,6 +181,9 @@ bool exploration(ros::NodeHandle &nh) {
         // id = myVizPos.size()+1;
         myVizPos.clear();
     }
+
+    // while(1);
+
     // Fahre immer das erste Frontier in der liste an weil es das günstigste ist!
     if(frontier_list[0].shouldRotate == 0) {
         myPoint = grid2Kartesisch(grid,

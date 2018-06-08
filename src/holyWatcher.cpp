@@ -17,6 +17,9 @@ std::vector<std::vector<int> > costmap;
 std::vector<std::vector<int> > gridMap;
 nav_msgs::OccupancyGrid grid;
 
+double distanceTraveled = 0;
+double angleRotated = 0;
+
 void updateGridMap(const nav_msgs::OccupancyGrid& map){
     // ROS_INFO("Received a %d X %d GridMap @ %.3f m/px", 
     //         map.info.width,
@@ -44,10 +47,7 @@ void updateGridMap(const nav_msgs::OccupancyGrid& map){
     }
     grid = map;
     gridMap = grid_vec;
-
-
     calculateExploratedAreaOverTime(map);
-
 }
 
 void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map) {
@@ -61,16 +61,23 @@ void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map) {
     double area = exploredCells * map.info.resolution * map.info.resolution;
     static double initial_time = ros::Time::now().toSec();
     double time = ros::Time::now().toSec() - initial_time;
-    std::cout << "area = "<< area << " / time = " << time << std::endl;
-    printToFile(area, time);
+    // std::cout << "area = "<< area << " / time = " << time << std::endl;
+    // std::cout << "distanceTraveled = "<< distanceTraveled << " / time = " << time << std::endl;
+    std::cout << "angleRotated = "<< angleRotated << " / time = " << time << std::endl;
+    printToFile(time, area, "AreaOverTime.txt");
+    printToFile(time, distanceTraveled, "DistanceTraveled.txt"); // ditanceTraveled ist global 
+                                                                 // damit ich es hier ins file speicher kann
+                                                                 // sonst zuviele aufrufe!
+    printToFile(time, angleRotated, "AngleRotated.txt");
+    printToFile(time, roboterPosition.yaw, "AbsolutAngle.txt");
 }
 
 
-void printToFile(double area, double time) {
+void printToFile(double x, double y, std::string str) {
     std::ofstream myFile;
     if(!myFile.is_open())
-        myFile.open("AreaOvertime.txt", std::ios::app);
-    myFile << area << " , "<< time << std::endl;;
+        myFile.open(str, std::ios::app);
+    myFile << x << " , "<< y << std::endl;;
 }
 
 
@@ -103,32 +110,6 @@ void updateCostmap(const nav_msgs::OccupancyGrid& costmap_msg) {
 
 }
 
-// void update_callback(const map_msgs::OccupancyGridUpdate& costmapUpdate) {
-//     ROS_INFO("Received a %d X %d UPDATECOSTMAP", 
-//             costmapUpdate.width,
-//             costmapUpdate.height);
-//
-//     int rows_cost = costmapUpdate.height;
-//     int cols_cost = costmapUpdate.width;
-//
-//     std::vector<std::vector<int> > costmap_update_vec;
-//     // Dynamically resize the Grid
-//     costmap_update_vec.resize(rows_cost);
-//     for (int i = 0; i < rows_cost ; i++){
-//         costmap_update_vec[i].resize(cols_cost);
-//     }
-//
-//     int currCell = 0;
-//     for (int i = 0; i < rows_cost; i++){
-//         for(int j = 0; j < cols_cost; j++){
-//             costmap_update_vec[i][j] = costmapUpdate.data[currCell];
-//             currCell++;
-//         }
-//     }
-//     costmap_upd = costmap_update_vec;
-//
-// }
-//
 
 void updateRoboterPosition(const nav_msgs::Odometry::ConstPtr& pose_msg) {
 
@@ -146,22 +127,37 @@ void updateRoboterPosition(const nav_msgs::Odometry::ConstPtr& pose_msg) {
     roboterPosition.y = pose_msg->pose.pose.position.y;
 
     calculateDistanceTraveled();
+    calculateAngleRotated();
 }
 
 
+void calculateAngleRotated() {
+    static double old_yaw = fabs(roboterPosition.yaw);
+    // double tolerance = 0;// 0.0170; // Entspricht 5°
+    // if((roboterPosition.yaw > (old_yaw + tolerance)) || (roboterPosition.yaw < (old_yaw - tolerance))) {
+    double diff = fabs(fabs(roboterPosition.yaw) - old_yaw);
+    if(diff < 0.95*2*M_PI){
+        angleRotated = angleRotated + diff;
+    }
+    else {
+        diff = fabs(diff - 2*M_PI);
+        angleRotated = angleRotated + diff;
+    }
+    old_yaw = fabs(roboterPosition.yaw);
+}
 
 
 void calculateDistanceTraveled() {
     static robotPose oldRoboterPosition = roboterPosition;
-    static double distanceTraveled = 0;
     double newDistance = sqrt(pow(roboterPosition.x - oldRoboterPosition.x,2)+
                               pow(roboterPosition.y - oldRoboterPosition.y,2));
-    if(newDistance > 0.01) // die if Abfrage dient um das Gitter zu filtern! 
-        distanceTraveled = distanceTraveled + newDistance;
+    if(newDistance > 0.001) // "if" Abfrage dient um das Gitter (dschitter) zu filtern! 
+        distanceTraveled = distanceTraveled + newDistance; // distanceTraveled ist global und wird weiter oben in ein file gespeichert
     oldRoboterPosition = roboterPosition;
-    static double initial_time2 = ros::Time::now().toSec();
-    double time = ros::Time::now().toSec() - initial_time2;
-    std::cout << "distanceTraveled = "<< distanceTraveled << " / time = " << time << std::endl;
+    // static double initial_time2 = ros::Time::now().toSec();
+    // double time = ros::Time::now().toSec() - initial_time2;
+    // std::cout << "distanceTraveled = "<< distanceTraveled << " / time = " << time << std::endl;
+    // printToFile(time, distanceTraveled, "DistanceTraveled.txt");
 }
 
 
