@@ -126,7 +126,9 @@ std::vector<Frontier> buildFrontiers(std::vector<gridCell> frontierCells) {
         oldFrontierSize = 0;
 
     }
+    std::cout << "........................" << std::endl;
     std::cout << "frontier_list.size() = "<< frontier_list.size() << std::endl;
+    std::cout << "........................" << std::endl;
     return frontier_list;
 }
 
@@ -135,6 +137,7 @@ Frontier fillFrontier(std::vector<gridCell> frontier) {
     Frontier realFrontier;
     realFrontier.connected_f_cells = frontier;
     realFrontier.numberOfElements = frontier.size();
+    std::cout << "___________________________________________" << std::endl;
     std::cout << "realFrontier.numberOfElements = "<< realFrontier.numberOfElements << std::endl;
     realFrontier.pseudoMidPoint = ceil(realFrontier.numberOfElements / 2); //TODO: anstatt ceil auf int casten 
     realFrontier.centroid.row = 0;
@@ -166,13 +169,12 @@ Frontier fillFrontier(std::vector<gridCell> frontier) {
     realFrontier.rotationAngle = steering_angle - robot_yaw;
     std::cout << "realFrontier.rotationAngle = "<< realFrontier.rotationAngle << std::endl;
 
-    // Berechne den Winkelunterschied zwischen Zielfrontier (pseudoMidpoiont) und Roboterausrichtung (yaw)
-    // brauche das hier für die Kostenberechnung
-    steering_angle = atan2(realFrontier.connected_f_cells[realFrontier.pseudoMidPoint].col - robotPos_col, 
-                           realFrontier.connected_f_cells[realFrontier.pseudoMidPoint].row - robotPos_row);
-    realFrontier.angleToGoalPoint = steering_angle - robot_yaw;
-    std::cout << "realFrontier.angleToGoalPoint = "<< realFrontier.angleToGoalPoint << std::endl;
-    std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+    // // Berechne den Winkelunterschied zwischen Zielfrontier (pseudoMidpoiont) und Roboterausrichtung (yaw)
+    // // brauche das hier für die Kostenberechnung
+    // steering_angle = atan2(realFrontier.connected_f_cells[realFrontier.pseudoMidPoint].col - robotPos_col, 
+    //                        realFrontier.connected_f_cells[realFrontier.pseudoMidPoint].row - robotPos_row);
+    // realFrontier.angleToGoalPoint = steering_angle - robot_yaw;
+    // std::cout << "realFrontier.angleToGoalPoint = "<< realFrontier.angleToGoalPoint << std::endl;
 
     return realFrontier;
 }

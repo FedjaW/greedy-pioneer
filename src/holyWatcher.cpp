@@ -63,13 +63,13 @@ void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map) {
     double time = ros::Time::now().toSec() - initial_time;
     // std::cout << "area = "<< area << " / time = " << time << std::endl;
     // std::cout << "distanceTraveled = "<< distanceTraveled << " / time = " << time << std::endl;
-    std::cout << "angleRotated = "<< angleRotated << " / time = " << time << std::endl;
-    printToFile(time, area, "AreaOverTime.txt");
-    printToFile(time, distanceTraveled, "DistanceTraveled.txt"); // ditanceTraveled ist global 
-                                                                 // damit ich es hier ins file speicher kann
-                                                                 // sonst zuviele aufrufe!
-    printToFile(time, angleRotated, "AngleRotated.txt");
-    printToFile(time, roboterPosition.yaw, "AbsolutAngle.txt");
+    // std::cout << "angleRotated = "<< angleRotated << " / time = " << time << std::endl;
+    // printToFile(time, area, "AreaOverTime.txt");
+    // printToFile(time, distanceTraveled, "DistanceTraveled.txt"); // ditanceTraveled ist global 
+    //                                                              // damit ich es hier ins file speicher kann
+    //                                                              // sonst zuviele aufrufe!
+    // printToFile(time, angleRotated, "AngleRotated.txt");
+    // printToFile(time, roboterPosition.yaw, "AbsolutAngle.txt");
 }
 
 

@@ -13,7 +13,7 @@ Visualizer::~Visualizer(){};
 
 int id; // KEINE AHNUNG warum das mit der id so klappt ?!??!?!?
 
-void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos, int r, int g, int b, bool deleteArray){
+void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::Pose> vizPos, double r, double g, double b, bool deleteArray){
    // static, damit der Publisher nur einmal initialisiert werden muss! 
    // kostest sonst zuviel zeit und er löscht nicht ordentlich (Grund unbekannt)
     static ros::Publisher marker_array_publisher = nh.advertise
@@ -54,7 +54,7 @@ void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::
             sleep(0.2);
         }
         marker_array_publisher.publish(markers_msg);
-        ROS_INFO("MarkerArray gesetzt");
+        // ROS_INFO("MarkerArray gesetzt");
     }
 
     if(deleteArray == 1) {
@@ -65,7 +65,7 @@ void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::
         }
         marker_array_publisher.publish(markers_msg);
         id = 0;
-        ROS_INFO("MarkerArray gelöscht");
+        // ROS_INFO("MarkerArray gelöscht");
     }
 }
 

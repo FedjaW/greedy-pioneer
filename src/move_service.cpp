@@ -48,10 +48,12 @@ distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Po
     srv.request.start = Start;
     srv.request.goal = Goal;
     srv.request.tolerance = 1.5;
+        
+    check_path.call(srv);
 
-    ROS_INFO("Make plan: %d", (check_path.call(srv) ? 1 : 0));
+    // ROS_INFO("Make plan: %d", (check_path.call(srv) ? 1 : 0));
     // ROS_INFO("Little reminder: check if move_base is turned on");
-    ROS_INFO("Plan size: %d", srv.response.plan.poses.size());
+    // ROS_INFO("Plan size: %d", srv.response.plan.poses.size());
 
     Visualizer myVisualizer2;
     int id = 0;
@@ -66,7 +68,7 @@ distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Po
                                       srv.response.plan.poses[path_size-1].pose.position.x - 
                                       srv.response.plan.poses[path_size-5].pose.position.x);
     
-    ROS_INFO("goalSteeringAngle = %f", distAndSteer.goalSteeringAngle);
+    // ROS_INFO("goalSteeringAngle = %f", distAndSteer.goalSteeringAngle);
     geometry_msgs::PoseStamped myPose;
     for(int i = 0; i < path_size-1; i++) {
         myPose = srv.response.plan.poses[i];
@@ -82,10 +84,11 @@ distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Po
         vizPos.push_back(myPose.pose);
     }
     
-    ROS_INFO("Distanz = %f", distance);
+    // ROS_INFO("Distanz = %f", distance);
     distAndSteer.distance = distance;
-    myVisualizer2.setMarkerArray(nh, vizPos, 0,1,1,0);
-    // id = vizPos.size()+1;
+
+    // myVisualizer2.setMarkerArray(nh, vizPos, 0,1,1,0);
+
     vizPos.clear();
     
     return distAndSteer;
@@ -135,8 +138,8 @@ void rotate(ros::NodeHandle &nh, double rotation_angle) {
         robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
         angle_diff = rotation_angle - robot_yaw;
         vel_msg.angular.z = 2 * angle_diff; 
-        if(vel_msg.angular.z > 1.8) vel_msg.angular.z = 1.8;
-        if(vel_msg.angular.z < -1.8) vel_msg.angular.z = -1.8;
+        if(vel_msg.angular.z > 1) vel_msg.angular.z = 1;
+        if(vel_msg.angular.z < -1) vel_msg.angular.z = -1;
 
         velocity_publisher.publish(vel_msg);
 
@@ -180,22 +183,20 @@ void sendGoal(double x, double y, double radians, double distanceToGoal) {
   goal.target_pose.pose.orientation = qMsg;
 
 
-  ROS_INFO("Sending goal to navigation planner");
+  std::cout << "Sending goal to navigation planner" << std::endl;
   // ac.sendGoal(goal);
   // time = distance / velocity
   // max velocity of Jackal = 2m/s
   // but messuared only 0.5 m/s
-  double timeToDrive = distanceToGoal / 0.5;
+  double timeToDrive = distanceToGoal / 0.40;
   ac.sendGoalAndWait(goal, ros::Duration(timeToDrive), ros::Duration(1));
 
-  ROS_INFO("Abgebrochen ???");
-
   ac.waitForResult();
-
+  
   if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-    ROS_INFO("Hooray, we reached the goal :-)");
-  else
-    ROS_INFO("Dang, we didn't make it to the goal :-(");
+    std::cout << "Hooray, we reached the goal :-)" << std::endl;
+  if(ac.getState() == actionlib::SimpleClientGoalState::PREEMPTED)
+    std::cout << "Preemted, we asssume we rechead the goal..." << std::endl;
 }
 
 
@@ -226,16 +227,16 @@ bool isObstacleInViewField(ros::NodeHandle &nh, const nav_msgs::OccupancyGrid& m
         if (e2 < dx) { err += dx; y0 += sy; } // e_xy+e_y < 0 
 
         if (costmap[x0][y0] > 10) { 
-            myVisualizer3.setMarkerArray(nh, vizPos, 1,1,0,0);
-            id = vizPos.size()+1;
-            vizPos.clear();
+            // myVisualizer3.setMarkerArray(nh, vizPos, 1,1,0,0);
+            // id = vizPos.size()+1;
+            // vizPos.clear();
             return true;
 
         }
     }
 
     myVisualizer3.setMarkerArray(nh, vizPos, 1,1,0,0);
-    id = vizPos.size()+1;
+    // id = vizPos.size()+1;
     vizPos.clear();
 
     return false;
