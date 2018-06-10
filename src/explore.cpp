@@ -18,10 +18,11 @@ bool exploration(ros::NodeHandle &nh) {
 
     // nav_msgs::OccupancyGrid grid = requestMap(nh);
     // std::vector<std::vector<int> > gridMap = readMap(grid);
-
-    bool MODI_1 = false;
-    bool MODI_2 = true;
-    bool MODI_3 = false;
+    
+    bool MODI_1 = false; // MODI_1: NUR Anfahren; kein Rotieren!
+    bool MODI_2 = true; // MOD1_2: Nach jeder Fahrt 360° rotieren
+    bool MODI_3 = false; // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
+    
 
     std::vector<geometry_msgs::Pose> myVizPos;
     geometry_msgs::Pose dummyPos;
@@ -51,14 +52,14 @@ bool exploration(ros::NodeHandle &nh) {
     static double maxDistance = 0;
     static double maxNumberOfElements = 0;
 
+    // Fülle die frontierst mit distanz und dem goalSteeringAngle
     for(auto& frontier : frontier_list) {
-        // Fülle die frontierst mit distanz und dem goalSteeringAngle
-        // goalSteeringAngle für das sendGoal();
         myPoint = grid2Kartesisch(grid,
                                   frontier.connected_f_cells[frontier.pseudoMidPoint].row, 
                                   frontier.connected_f_cells[frontier.pseudoMidPoint].col);
         distanceAndSteering distAndSteer = getDistanceToFrontier(nh, myPoint); //TODO: was ist wenn Zielpunkt nicht erreichbar ist
         frontier.distance2Frontier =  distAndSteer.distance;
+        // goalSteeringAngle für das sendGoal() notwendig
         frontier.goalSteeringAngle = distAndSteer.goalSteeringAngle;
         
         // update die max. werte für die relationsberechnung in der Kostenfunktion live (online)
@@ -73,7 +74,6 @@ bool exploration(ros::NodeHandle &nh) {
     // nach jeder Fahrt ergeben sich neue max werte durch die obige schleife
     // die max werte werden hier dann zur bewertung der Kosten herangezogen
     for(auto& frontier : frontier_list) {
-
         double rotationCost = 10000; // sehr hoch wählen!!! 
         double drivingCost = + alpha * (frontier.distance2Frontier / maxDistance)
                              - beta * (frontier.numberOfElements / maxNumberOfElements);
@@ -135,12 +135,15 @@ bool exploration(ros::NodeHandle &nh) {
     for(auto& frontier : frontier_list) {
         std::cout << "kosten sortiert = "<<  frontier.cost << " / " << "shouldRotate = " << frontier.shouldRotate << std::endl;
     }
+    std::cout << std::endl;
+
 
     Visualizer myVisualize;
     double r = 0;
     double g = 0;
     double b = 0;
     
+    // viusalisiere alle frontiers. Grün -> Zielfrontier
     for(auto& frontier : frontier_list) {
         toggleColor(r,g,b);
         for(int i = 0; i < frontier.connected_f_cells.size(); i++) {
@@ -151,29 +154,26 @@ bool exploration(ros::NodeHandle &nh) {
             dummyPos.position.y = myPoint.y;
             myVizPos.push_back(dummyPos);
         }
-
         myVisualize.setMarkerArray(nh, myVizPos, r,g,b,0);
         myVizPos.clear();
     }
 
+    // Fahre immer das erste Frontier in der liste an weil es das günstigste ist!
+    // Zielpunkt: das erste (kostengünstigste) Frontier in xy-koordinaten
+    myPoint = grid2Kartesisch(grid,
+                                  frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
+                                  frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
 
     // MODI_1: NUR Anfahren; kein Rotieren!
     if(MODI_1 == true) {
         std::cout << "MODUS 1 AKTIV" << std::endl;
-        myPoint = grid2Kartesisch(grid,
-                                  frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
-                                  frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
         sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
     }
 
     // MOD1_2: Nach jeder Fahrt 360° rotieren
     if(MODI_2 == true) {
         std::cout << "MODUS 2 AKTIV" << std::endl;
-        myPoint = grid2Kartesisch(grid,
-                                  frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
-                                  frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
         sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
-
         rotate360(nh);
     }
 
@@ -182,17 +182,15 @@ bool exploration(ros::NodeHandle &nh) {
     if(MODI_3 == true) {
         std::cout << "MODUS 3 AKTIV" << std::endl;
 
-        // Fahre immer das erste Frontier in der liste an weil es das günstigste ist!
         if(frontier_list[0].shouldRotate == 0) {
-            myPoint = grid2Kartesisch(grid,
-                    frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
-                    frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
             sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
         }
         else {
             rotate(nh, frontier_list[0].rotationAngle);
         }
     }
+
+
     myVisualize.setMarkerArray(nh, myVizPos, r,g,b,1); // delete ALL markerArrays
 
     // NOTE: Kp ob ich das brauche
@@ -239,14 +237,6 @@ void toggleColor(double &r, double &g, double &b) {
             g = 0.8;
             b = 0.6;
         }
-            // r = ((double) rand() / (RAND_MAX));
-            // g = ((double) rand() / (RAND_MAX));
-            // b = ((double) rand() / (RAND_MAX));
-            // if((r == 1 || g == 0 || b == 0)) { // red is used to indicate the goalFrontier
-            //     r = 0;
-            //     g = 0;
-            //     b = 1;
-            // }
 }
 
 // MAIN FUNKTION__________________________________
@@ -260,6 +250,7 @@ int main(int argc, char **argv) {
     rate.sleep(); // warte kurz bis die Callbacks im anderen thread
     rate.sleep(); // aufgerufen wurden und Daten vorliegen
     rate.sleep(); // TODO: schöner lösen !!!
+    rate.sleep(); 
 
     while(exploration(nh));
 

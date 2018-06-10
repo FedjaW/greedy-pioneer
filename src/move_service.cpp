@@ -147,6 +147,7 @@ double getDistance(double x1,double y1,double x2,double y2){
 // }
 
 void rotate360(ros::NodeHandle &nh) {
+    std::cout << "Start 360°-rotation " << std::endl;
     ros::Publisher velocity_publisher = nh.advertise<geometry_msgs::Twist>("/cmd_vel",10);  
     double angle_diff = 0;
     double robot_yaw = 0;
@@ -168,23 +169,15 @@ void rotate360(ros::NodeHandle &nh) {
             velocity_publisher.publish(vel_msg);
         }while(fabs(angle_diff) > tolerance);
     }
-    // if(robot_yaw > 0)
-    //     rotation_angle = robot_yaw - 3.14;
-    // if(robot_yaw < 0)
-    //     rotation_angle = robot_yaw + 3.14;
-    // do{ 
-    //     robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
-    //     angle_diff = rotation_angle - robot_yaw;
-    //     vel_msg.angular.z = 1; 
-    //     velocity_publisher.publish(vel_msg);
-    // }while(fabs(angle_diff) > tolerance);
-    // std::cout << "robot_yaw = " << robot_yaw << std::endl;
     vel_msg.angular.z = 0;
     velocity_publisher.publish(vel_msg);
-    std::cout << "ROTATION 360° end" << std::endl;
+    std::cout << "End 360°-rotation " << std::endl;
 }
+
+
+
+
 void rotate(ros::NodeHandle &nh, double rotation_angle) {
-        std::cout << "rotation_angle in rot = " << rotation_angle <<std::endl;
     ros::Publisher velocity_publisher = nh.advertise<geometry_msgs::Twist>("/cmd_vel",10);  
     double angle_diff = 0;
     double robot_yaw = 0;
@@ -193,7 +186,6 @@ void rotate(ros::NodeHandle &nh, double rotation_angle) {
 
     robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
     rotation_angle = rotation_angle + robot_yaw; // NOTE: Trick to calculate the steering_angle
-    std::cout << "rotation_angle in rot = " << rotation_angle <<std::endl;
     do{ 
         robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
         angle_diff = rotation_angle - robot_yaw;
