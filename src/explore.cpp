@@ -1,4 +1,5 @@
-#include <ros/ros.h>#include "myGetMap.h"
+#include <ros/ros.h>
+#include "myGetMap.h"
 #include "visualize.h"
 #include "findFrontiers.h"
 #include <thread>
@@ -17,6 +18,10 @@ bool exploration(ros::NodeHandle &nh) {
 
     // nav_msgs::OccupancyGrid grid = requestMap(nh);
     // std::vector<std::vector<int> > gridMap = readMap(grid);
+
+    bool MODI_1 = false;
+    bool MODI_2 = true;
+    bool MODI_3 = false;
 
     std::vector<geometry_msgs::Pose> myVizPos;
     geometry_msgs::Pose dummyPos;
@@ -152,17 +157,42 @@ bool exploration(ros::NodeHandle &nh) {
     }
 
 
-    // Fahre immer das erste Frontier in der liste an weil es das günstigste ist!
-    if(frontier_list[0].shouldRotate == 0) {
+    // MODI_1: NUR Anfahren; kein Rotieren!
+    if(MODI_1 == true) {
+        std::cout << "MODUS 1 AKTIV" << std::endl;
         myPoint = grid2Kartesisch(grid,
                                   frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
                                   frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
         sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
     }
-    else {
-        rotate(nh, frontier_list[0].rotationAngle);
+
+    // MOD1_2: Nach jeder Fahrt 360° rotieren
+    if(MODI_2 == true) {
+        std::cout << "MODUS 2 AKTIV" << std::endl;
+        myPoint = grid2Kartesisch(grid,
+                                  frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
+                                  frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
+        sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
+
+        rotate360(nh);
     }
 
+    // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
+    // Rotation und Anfahren gemixt
+    if(MODI_3 == true) {
+        std::cout << "MODUS 3 AKTIV" << std::endl;
+
+        // Fahre immer das erste Frontier in der liste an weil es das günstigste ist!
+        if(frontier_list[0].shouldRotate == 0) {
+            myPoint = grid2Kartesisch(grid,
+                    frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
+                    frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
+            sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
+        }
+        else {
+            rotate(nh, frontier_list[0].rotationAngle);
+        }
+    }
     myVisualize.setMarkerArray(nh, myVizPos, r,g,b,1); // delete ALL markerArrays
 
     // NOTE: Kp ob ich das brauche

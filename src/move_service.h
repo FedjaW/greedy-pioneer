@@ -17,6 +17,7 @@ struct distanceAndSteering {
 distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate);
 double getDistance(double x1,double y1,double x2,double y2);
 tf::StampedTransform getRobotPosInMapFrame();
+void rotate360(ros::NodeHandle &nh);
 void rotate(ros::NodeHandle &nh, double rotation_angle);
 void sendGoal(double x, double y, double radians, double distanceToGoal);
 // bool isObstacleInViewField(int x0, int y0, int x1, int y1);
