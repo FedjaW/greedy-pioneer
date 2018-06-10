@@ -135,32 +135,32 @@ include_directories(
 # )
 
 
-add_executable(getOccupancyGridMap src/getOccupancyGridMap.cpp)
-target_link_libraries(getOccupancyGridMap ${catkin_LIBRARIES})
-add_dependencies(getOccupancyGridMap greedy_pioneer_generate_message_cpp)
-
-
-add_executable(setMarker src/setMarker.cpp)
-target_link_libraries(setMarker ${catkin_LIBRARIES})
-add_dependencies(setMarker greedy_pioneer_generate_message_cpp)
-
-
-add_executable(sendGoal_example src/sendGoal_example.cpp)
-target_link_libraries(sendGoal_example ${catkin_LIBRARIES})
-add_dependencies(sendGoal_example greedy_pioneer_generate_message_cpp)
-
-
-add_executable(searchRegion src/searchRegion.cpp)
-target_link_libraries(searchRegion ${catkin_LIBRARIES})
-add_dependencies(searchRegion greedy_pioneer_generate_message_cpp)
-
-add_executable(getCostmap2d src/getCostmap2d.cpp)
-target_link_libraries(getCostmap2d ${catkin_LIBRARIES})
-add_dependencies(getCostmap2d greedy_pioneer_generate_message_cpp)
-
-add_executable(make_plan_service src/make_plan_service.cpp)
-target_link_libraries(make_plan_service ${catkin_LIBRARIES})
-add_dependencies(make_plan_service greedy_pioneer_generate_message_cpp)
+# add_executable(getOccupancyGridMap src/getOccupancyGridMap.cpp)
+# target_link_libraries(getOccupancyGridMap ${catkin_LIBRARIES})
+# add_dependencies(getOccupancyGridMap greedy_pioneer_generate_message_cpp)
+#
+#
+# add_executable(setMarker src/setMarker.cpp)
+# target_link_libraries(setMarker ${catkin_LIBRARIES})
+# add_dependencies(setMarker greedy_pioneer_generate_message_cpp)
+#
+#
+# add_executable(sendGoal_example src/sendGoal_example.cpp)
+# target_link_libraries(sendGoal_example ${catkin_LIBRARIES})
+# add_dependencies(sendGoal_example greedy_pioneer_generate_message_cpp)
+#
+#
+# add_executable(searchRegion src/searchRegion.cpp)
+# target_link_libraries(searchRegion ${catkin_LIBRARIES})
+# add_dependencies(searchRegion greedy_pioneer_generate_message_cpp)
+#
+# add_executable(getCostmap2d src/getCostmap2d.cpp)
+# target_link_libraries(getCostmap2d ${catkin_LIBRARIES})
+# add_dependencies(getCostmap2d greedy_pioneer_generate_message_cpp)
+#
+# add_executable(make_plan_service src/make_plan_service.cpp)
+# target_link_libraries(make_plan_service ${catkin_LIBRARIES})
+# add_dependencies(make_plan_service greedy_pioneer_generate_message_cpp)
 
 add_executable(rotation_exploration src/explore.cpp src/myGetMap.cpp src/visualize.cpp src/holyWatcher.cpp src/findFrontiers.cpp src/move_service.cpp)
 add_dependencies(rotation_exploration greedy_pioneer_generate_message_cpp)

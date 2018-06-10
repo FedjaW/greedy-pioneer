@@ -19,16 +19,19 @@ bool exploration(ros::NodeHandle &nh) {
     // nav_msgs::OccupancyGrid grid = requestMap(nh);
     // std::vector<std::vector<int> > gridMap = readMap(grid);
     
+    bool MODI_0 = true; 
     bool MODI_1 = false; // MODI_1: NUR Anfahren; kein Rotieren!
-    bool MODI_2 = true; // MOD1_2: Nach jeder Fahrt 360° rotieren
+    bool MODI_2 = false; // MOD1_2: Nach jeder Fahrt 360° rotieren
     bool MODI_3 = false; // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
     
 
     std::vector<geometry_msgs::Pose> myVizPos;
     geometry_msgs::Pose dummyPos;
-
     geometry_msgs::Point myPoint;
-    std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
+
+    std::vector<std::vector<int> > filteredMap1 = filterMap(gridMap);
+    std::vector<gridCell> frontierCells = findFrontierCells(filteredMap1);
+    // std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
     
     // für die Funktion fillFrontier / alle variablem sind Global
     double robotPos_x = getRobotPosInMapFrame().getOrigin().x(); // getRobotPosInMapFrame erzeugt ein 
@@ -82,7 +85,7 @@ bool exploration(ros::NodeHandle &nh) {
 
         if(frontier.directMinDistance < laser_radius) {
 
-            if(abs(frontier.rotationAngle) >= 0.8 * FOV/2) { // >= damit der Randbereich auch an-rotiert wird
+            if(abs(frontier.rotationAngle) >= 0.6 * FOV/2) { // >= damit der Randbereich auch an-rotiert wird
 
                 bool obstacle = isObstacleInViewField(nh,
                                                   grid,
@@ -164,6 +167,10 @@ bool exploration(ros::NodeHandle &nh) {
                                   frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
                                   frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
 
+    if(MODI_0 == true) {
+        std::cout << "MODUS 0 AKTIV" << std::endl;
+        while(1);
+    }
     // MODI_1: NUR Anfahren; kein Rotieren!
     if(MODI_1 == true) {
         std::cout << "MODUS 1 AKTIV" << std::endl;

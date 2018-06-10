@@ -2,8 +2,8 @@
 #include "findFrontiers.h"
 #include "angles/angles.h"
 #include "math.h"
-
 #include "holyWatcher.h"
+#include "visualize.h"
 
 // Minimum size that a Frontier should have to be accepted as valid Frontier
 // Size is the Number of neighbour-gridCells;
@@ -17,6 +17,72 @@ int robotPos_row; // = kartesisch2grid().row
 int robotPos_col; // = kartesisch2grid().grid
 double robot_yaw; // =  getRobotPosInMapFrame().
 
+std::vector<std::vector<int> > filteredCostmap;
+
+
+std::vector<std::vector<int> > filterMap(std::vector<std::vector<int> > filteredMap) {
+    filteredCostmap = costmap;
+    // std::vector<std::vector<int> > filteredMap = fullMap;
+    ros::NodeHandle nh2;
+    // für die visualisierung
+    Visualizer myVisualize4;
+    std::vector<geometry_msgs::Pose> myVizPos;
+    geometry_msgs::Point myPoint;
+    geometry_msgs::Pose dummyPos;
+
+    double filteredCells = 0;
+
+    // filter mechanismus
+    int nhoodKnownCellCounter = 0; // number off neighbourhood-cells of an unknown cell
+    for(int i = filteredMap.size() - 2; i >= 1 ; i--){      // durchsuche ganze Karte
+        for(int j = 1; j < filteredMap[0].size() - 1 ; j++){
+
+            if(filteredMap[i][j] == -1) { // Wenn Zelle unbekannt
+
+                if(filteredMap[i+1][j] == 0) // prüfen ob der Nachbar bekannt und frei ist
+                    nhoodKnownCellCounter++;
+                if(filteredMap[i][j+1] == 0)
+                    nhoodKnownCellCounter++;
+                if(filteredMap[i-1][j] == 0)
+                    nhoodKnownCellCounter++;
+                if(filteredMap[i][j-1] == 0)
+                    nhoodKnownCellCounter++;
+
+                if(filteredMap[i+1][j-1] == 0)
+                    nhoodKnownCellCounter++;
+                if(filteredMap[i+1][j+1] == 0)
+                    nhoodKnownCellCounter++;
+                if(filteredMap[i-1][j-1] == 0)
+                    nhoodKnownCellCounter++;
+                if(filteredMap[i-1][j+1] == 0)
+                    nhoodKnownCellCounter++;
+
+                if(nhoodKnownCellCounter >= 6) { // bei 6 oder mehr (max 8) bekannten benachbarten Zellen tue:
+                    // Setze diese unbekannte Zelle als BEKANNT weil umgeben von bekanntem Gebiet
+                    filteredMap[i][j] = 0;
+                    filteredCostmap[i][j] = 0;
+
+                    // std::cout << "filteredMap[i][j] = " << filteredMap[i][j] << std::endl;
+                    filteredCells++;
+
+                    // fülle den vis marker 
+                    myPoint = grid2Kartesisch(grid, j, i);
+                    dummyPos.position.x = myPoint.x;
+                    dummyPos.position.y = myPoint.y;
+                    myVizPos.push_back(dummyPos);
+                }
+                nhoodKnownCellCounter = 0;
+            }
+        }
+    }
+    std::cout << "#filteredCells = " << filteredCells << std::endl;
+
+    myVisualize4.setMarkerArray(nh2, myVizPos, 0.5, 0.1, 0.7, 0);
+    myVizPos.clear();
+
+    return filteredMap;
+}
+
 // searchRegion is for now the entiry Map
 std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchRegion) {
     int k = 0;
@@ -25,11 +91,12 @@ std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchReg
 
     // std::cout << "suchregion.size() = "<< searchRegion.size() << std::endl;
     // std::cout << "suchregion[0].size() = "<< searchRegion[0].size() << std::endl;
-    for(int i = searchRegion.size() - 1; i>= 0 ; i--){      // durchsuche ganze Karte
+    for(int i = searchRegion.size() - 1; i >= 0 ; i--){      // durchsuche ganze Karte
         for(int j = 0; j < searchRegion[0].size(); j++){
 
-            if(searchRegion[i][j] == 0 && costmap[i][j] == 0) { // prüfen ob Zelle frei ist
+            if(searchRegion[i][j] == 0 && filteredCostmap[i][j] == 0) { // prüfen ob Zelle frei ist
 
+                // 4nhood
                 if(searchRegion[i+1][j] == -1){ // prüfen ob der Nachbar unbekannt ist
                     myFrontierCell.row = j;
                     myFrontierCell.col = i;
@@ -52,6 +119,36 @@ std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchReg
                     k++;
                 }
                 else if(searchRegion[i][j-1] == -1){
+                    myFrontierCell.row = j;
+                    myFrontierCell.col = i;
+                    frontierCells.push_back(myFrontierCell);
+                    // std::cout << "frontier unten: row " << j << " / col " << i << std::endl;
+                    k++;
+                }
+                
+                // 8 nhood
+                else if(searchRegion[i+1][j-1] == -1) {
+                    myFrontierCell.row = j;
+                    myFrontierCell.col = i;
+                    frontierCells.push_back(myFrontierCell);
+                    k++;
+                }
+
+                else if(searchRegion[i+1][j+1] == -1) {
+                    myFrontierCell.row = j;
+                    myFrontierCell.col = i;
+                    frontierCells.push_back(myFrontierCell);
+                    // std::cout << "frontier unten: row " << j << " / col " << i << std::endl;
+                    k++;
+                }
+                else if(searchRegion[i-1][j-1] == -1) {
+                    myFrontierCell.row = j;
+                    myFrontierCell.col = i;
+                    frontierCells.push_back(myFrontierCell);
+                    // std::cout << "frontier unten: row " << j << " / col " << i << std::endl;
+                    k++;
+                }
+                else if(searchRegion[i-1][j+1] == -1) {
                     myFrontierCell.row = j;
                     myFrontierCell.col = i;
                     frontierCells.push_back(myFrontierCell);

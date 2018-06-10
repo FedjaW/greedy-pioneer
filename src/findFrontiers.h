@@ -8,6 +8,7 @@
 extern int robotPos_col; // = kartesisch2grid(grid, rob)
 extern int robotPos_row; // = kartesisch2grid(grid, rob)
 extern double robot_yaw; // =  getRobotPosInMapFrame().
+extern std::vector<std::vector<int> > filteredCostmap;
 
 
 struct Frontier {
@@ -37,6 +38,7 @@ std::vector<Frontier> buildFrontiers(std::vector<gridCell> frontierCells);
 
 Frontier fillFrontier(std::vector<gridCell> frontier);
 
+std::vector<std::vector<int> > filterMap(std::vector<std::vector<int> > fullMap);
 
 
 

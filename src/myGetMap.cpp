@@ -53,7 +53,7 @@ std::vector<std::vector<int> > readMap(const nav_msgs::OccupancyGrid& map){
 
     int currCell = 0;
     for (int i = 0; i < rows; i++){
-        for(int j = 0; j< cols; j++){
+        for(int j = 0; j < cols; j++){
             grid[i][j] = map.data[currCell];
             currCell++;
         }
@@ -66,8 +66,8 @@ geometry_msgs::Point grid2Kartesisch(const nav_msgs::OccupancyGrid& map, int row
 
     geometry_msgs::Point point;
 
-    point.x = row * map.info.resolution + map.info.origin.position.x;
-    point.y = col * map.info.resolution + map.info.origin.position.y;
+    point.x = (double) (row * map.info.resolution + map.info.origin.position.x) + map.info.resolution / 2;
+    point.y = (double) (col * map.info.resolution + map.info.origin.position.y) + map.info.resolution / 2;
 
     return point;
 }
@@ -98,6 +98,7 @@ std::vector<std::vector<int> > getCostmap() {
 }
 
 std::vector<std::vector<int> > getGridMap() {
+    
     return gridMap;
 }
 
