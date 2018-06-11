@@ -18,12 +18,12 @@ bool exploration(ros::NodeHandle &nh) {
 
     // nav_msgs::OccupancyGrid grid = requestMap(nh);
     // std::vector<std::vector<int> > gridMap = readMap(grid);
-    
-    bool MODI_0 = true; 
-    bool MODI_1 = false; // MODI_1: NUR Anfahren; kein Rotieren!
-    bool MODI_2 = false; // MOD1_2: Nach jeder Fahrt 360° rotieren
-    bool MODI_3 = false; // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
-    
+
+    // MODI 0: Zeige nur Frontiers an (endlosschleife)
+    // MODI 1: NUR Anfahren; kein Rotieren!
+    // MOD1 2: Nach jeder Fahrt 360° rotieren
+    // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
+    int MODI = 3;
 
     std::vector<geometry_msgs::Pose> myVizPos;
     geometry_msgs::Pose dummyPos;
@@ -167,34 +167,37 @@ bool exploration(ros::NodeHandle &nh) {
                                   frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
                                   frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
 
-    if(MODI_0 == true) {
-        std::cout << "MODUS 0 AKTIV" << std::endl;
-        while(1);
-    }
-    // MODI_1: NUR Anfahren; kein Rotieren!
-    if(MODI_1 == true) {
-        std::cout << "MODUS 1 AKTIV" << std::endl;
-        sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
-    }
+    switch(MODI) {
+        case 0: {
+                    std::cout << "MODUS 0 AKTIV" << std::endl;
+                    while(1);
+                }
 
-    // MOD1_2: Nach jeder Fahrt 360° rotieren
-    if(MODI_2 == true) {
-        std::cout << "MODUS 2 AKTIV" << std::endl;
-        sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
-        rotate360(nh);
-    }
+        // MODI_1: NUR Anfahren; kein Rotieren!
+        case 1: {
+                    std::cout << "MODUS 1 AKTIV" << std::endl;
+                    sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
+                }
 
-    // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
-    // Rotation und Anfahren gemixt
-    if(MODI_3 == true) {
-        std::cout << "MODUS 3 AKTIV" << std::endl;
+        // MOD1_2: Nach jeder Fahrt 360° rotieren
+        case 2: {
+                    std::cout << "MODUS 2 AKTIV" << std::endl;
+                    sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
+                    rotate360(nh);
+                }
 
-        if(frontier_list[0].shouldRotate == 0) {
-            sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
-        }
-        else {
-            rotate(nh, frontier_list[0].rotationAngle);
-        }
+        // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
+        // Rotation und Anfahren gemixt
+        case 3: {
+                    std::cout << "MODUS 3 AKTIV" << std::endl;
+
+                    if(frontier_list[0].shouldRotate == 0) {
+                        sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
+                    }
+                    else {
+                        rotate(nh, frontier_list[0].rotationAngle);
+                    }
+                }
     }
 
 
