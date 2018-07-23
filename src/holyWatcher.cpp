@@ -12,6 +12,8 @@
 
 
 robotPose roboterPosition;
+float roboterVelocity;
+float roboterAngularVel;
 std::vector<std::vector<int> > costmap;
 // std::vector<std::vector<int> > costmap_upd;
 std::vector<std::vector<int> > gridMap;
@@ -59,17 +61,21 @@ void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map) {
         }
     }
     double area = exploredCells * map.info.resolution * map.info.resolution;
-    static double initial_time = ros::Time::now().toSec();
-    double time = ros::Time::now().toSec() - initial_time;
+    static float initial_time = ros::Time::now().toSec();
+    static float time;
+    time = ros::Time::now().toSec() - initial_time;
     // std::cout << "area = "<< area << " / time = " << time << std::endl;
     // std::cout << "distanceTraveled = "<< distanceTraveled << " / time = " << time << std::endl;
     // std::cout << "angleRotated = "<< angleRotated << " / time = " << time << std::endl;
-    // printToFile(time, area, "AreaOverTime.txt");
-    // printToFile(time, distanceTraveled, "DistanceTraveled.txt"); // ditanceTraveled ist global 
-    //                                                              // damit ich es hier ins file speicher kann
-    //                                                              // sonst zuviele aufrufe!
-    // printToFile(time, angleRotated, "AngleRotated.txt");
-    // printToFile(time, roboterPosition.yaw, "AbsolutAngle.txt");
+    printToFile(time, area, "AreaOverTime.txt");
+    printToFile(time, distanceTraveled, "DistanceTraveled.txt"); // ditanceTraveled ist global 
+                                                                 // damit ich es hier ins file speicher kann
+                                                                 // sonst zuviele aufrufe!
+    printToFile(time, angleRotated, "AngleRotated.txt");
+    printToFile(time, roboterPosition.yaw, "AbsolutAngle.txt");
+    printToFile(time, roboterVelocity, "RoboterVelocity.txt");
+    printToFile(time, roboterAngularVel, "RoboterAngularVel.txt");
+    // std::cout << "distanceTraveled = "<< distanceTraveled << " / time = " << time << std::endl;
 }
 
 
@@ -125,6 +131,10 @@ void updateRoboterPosition(const nav_msgs::Odometry::ConstPtr& pose_msg) {
 
     roboterPosition.x = pose_msg->pose.pose.position.x;
     roboterPosition.y = pose_msg->pose.pose.position.y;
+
+    roboterVelocity = pose_msg->twist.twist.linear.x;
+    roboterAngularVel = pose_msg->twist.twist.angular.z;
+
 
     calculateDistanceTraveled();
     calculateAngleRotated();

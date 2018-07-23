@@ -9,6 +9,7 @@
 #include "explore.h"
 
 
+
 bool sortFunction(const Frontier& f1, const Frontier& f2) {
     return f1.cost < f2.cost;
 }
@@ -23,13 +24,14 @@ bool exploration(ros::NodeHandle &nh) {
     // MODI 1: NUR Anfahren; kein Rotieren!
     // MOD1 2: Nach jeder Fahrt 360° rotieren
     // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
-    int MODI = 3;
+    int MODI = 1;
 
     std::vector<geometry_msgs::Pose> myVizPos;
     geometry_msgs::Pose dummyPos;
     geometry_msgs::Point myPoint;
 
-    std::vector<std::vector<int> > filteredMap1 = filterMap(gridMap);
+   std::vector<std::vector<int> > lock_gridMap = gridMap;
+    std::vector<std::vector<int> > filteredMap1 = filterMap(lock_gridMap);
     std::vector<gridCell> frontierCells = findFrontierCells(filteredMap1);
     // std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
     
@@ -46,21 +48,64 @@ bool exploration(ros::NodeHandle &nh) {
 
     // Kostenfunktion zuordnen!
     // Parameter der Kosten
-    const double alpha = 0.6; // weight-factor of distance-cost
+    const double alpha = 0.7; // weight-factor of distance-cost
     const double beta = 0.40; // weight-factor of frontier-size 
-    const double gamma = 0.1; // weight-factor of rotation-cost to reach the goalSteeringAngle 
+    const double gamma = 0; // weight-factor of rotation-cost to reach the goalSteeringAngle 
     const double laser_radius = 4.5;
-    const double FOV = 4.71238; // Field of View in radians
+    const double FOV = 4.7123; // Field of View in radians 270°
+    // const double FOV = 3.1415; // Field of View in radians 180°
+    // const double FOV = 2.094; // Field of View in radians /120°
 
     static double maxDistance = 0;
     static double maxNumberOfElements = 0;
 
+    // damit nicht hin und her-rotiert wird....
+    static double oldCost[2] = {100,100};
+    static int rotationCounter = 0;
+
+
+
     // Fülle die frontierst mit distanz und dem goalSteeringAngle
     for(auto& frontier : frontier_list) {
-        myPoint = grid2Kartesisch(grid,
-                                  frontier.connected_f_cells[frontier.pseudoMidPoint].row, 
-                                  frontier.connected_f_cells[frontier.pseudoMidPoint].col);
+        // myPoint = grid2Kartesisch(grid,
+        //                           frontier.connected_f_cells[frontier.pseudoMidPoint].row, 
+        //                           frontier.connected_f_cells[frontier.pseudoMidPoint].col);
+
+        int nextPoint_ = frontier.numberOfElements - 1.7 * frontier.pseudoMidPoint;
+        // int row_goalpoint = frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row;
+        // int col_goalpoint = frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col;
+
+        // Nimm Schwerpunḱt als Ziel
+        int row_goalpoint_ = frontier.centroid.row;
+        int col_goalpoint_ = frontier.centroid.col;
+
+        // Keine unbekannten Ziele zulassen!!!
+        if(lock_gridMap[col_goalpoint_][row_goalpoint_] == -1) {
+            std::cout << "*Kein freien Schwerpunkt gefunden" << std::endl;
+            // Nimm pseudomidpint als Ziel
+            row_goalpoint_ = frontier.connected_f_cells[frontier.pseudoMidPoint].row;
+            col_goalpoint_ = frontier.connected_f_cells[frontier.pseudoMidPoint].col;
+
+            if(lock_gridMap[col_goalpoint_][row_goalpoint_] == -1) {
+                std::cout << "*Kein freien pseudoMidPoint gefunden" << std::endl;
+                do{
+                    row_goalpoint_ = frontier.connected_f_cells[frontier.pseudoMidPoint+nextPoint_].row;
+                    col_goalpoint_ = frontier.connected_f_cells[frontier.pseudoMidPoint+nextPoint_].col;
+                    nextPoint_++;
+                    if(frontier.pseudoMidPoint+nextPoint_ >= frontier.numberOfElements-1) {
+                        std::cout << "*Kein freier Zielpunkt vorhanden" << std::endl;
+                        std::cout << "*row_goal = " << row_goalpoint_  << " col_goal = " << col_goalpoint_ << std::endl;
+                        break;
+                    }
+                }while(lock_gridMap[col_goalpoint_][row_goalpoint_] == -1);
+            }
+            // std::cout << "Freies Ziel gefunden !" << std::endl;
+            // std::cout << "row_goal = " << row_goalpoint  << " col_goal = " << col_goalpoint<< std::endl;
+        }
+        myPoint = grid2Kartesisch(grid, row_goalpoint_, col_goalpoint_);
+
         distanceAndSteering distAndSteer = getDistanceToFrontier(nh, myPoint); //TODO: was ist wenn Zielpunkt nicht erreichbar ist
+
         frontier.distance2Frontier =  distAndSteer.distance;
         // goalSteeringAngle für das sendGoal() notwendig
         frontier.goalSteeringAngle = distAndSteer.goalSteeringAngle;
@@ -85,7 +130,7 @@ bool exploration(ros::NodeHandle &nh) {
 
         if(frontier.directMinDistance < laser_radius) {
 
-            if(abs(frontier.rotationAngle) >= 0.6 * FOV/2) { // >= damit der Randbereich auch an-rotiert wird
+            if(abs(frontier.rotationAngle) >= 0.8 * FOV/2) { // >= damit der Randbereich auch an-rotiert wird
 
                 bool obstacle = isObstacleInViewField(nh,
                                                   grid,
@@ -99,7 +144,9 @@ bool exploration(ros::NodeHandle &nh) {
                 if(!obstacle) {
                     // wenn die obigen 3 Bedingungen (if's) nicht erfüllt sind
                     // bleibt die rotationCost so hoch dass automatisch shouldRotate = false bleibt 
-                    rotationCost = - beta * (frontier.numberOfElements / maxNumberOfElements) + gamma * ((fabs(frontier.rotationAngle) - (FOV/2)) / M_PI);
+                    rotationCost = 20 * (- beta * (frontier.numberOfElements / maxNumberOfElements) + gamma * ((fabs(frontier.rotationAngle) - (FOV/2)) / M_PI));
+                    // rotationCost = - 1.5 * beta * (frontier.numberOfElements) + gamma * ((fabs(frontier.rotationAngle) - (FOV/2)) / M_PI);
+                    // rotationCost = -1;
                     std::cout << "rotationCost = "<<  rotationCost << std::endl;
                 }
             }
@@ -161,12 +208,48 @@ bool exploration(ros::NodeHandle &nh) {
         myVizPos.clear();
     }
 
+
+
     // Fahre immer das erste Frontier in der liste an weil es das günstigste ist!
     // Zielpunkt: das erste (kostengünstigste) Frontier in xy-koordinaten
-    myPoint = grid2Kartesisch(grid,
-                                  frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
-                                  frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
 
+    //nextPoint geht an den Anfang des Frontiers und nimmt das als Zielpunkt und nicht Pseudomidpoint
+    int nextPoint = frontier_list[0].numberOfElements - 1.7 * frontier_list[0].pseudoMidPoint;
+    // int row_goalpoint = frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row;
+    // int col_goalpoint = frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col;
+
+    // Nimm Schwerpunḱt als Ziel
+    int row_goalpoint = frontier_list[0].centroid.row;
+    int col_goalpoint = frontier_list[0].centroid.col;
+
+    // Keine unbekannten Ziele zulassen!!!
+    if(lock_gridMap[col_goalpoint][row_goalpoint] == -1) {
+        std::cout << "Kein freien Schwerpunkt gefunden" << std::endl;
+        // Nimm pseudomidpint als Ziel
+        row_goalpoint = frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row;
+        col_goalpoint = frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col;
+
+        if(lock_gridMap[col_goalpoint][row_goalpoint] == -1) {
+            std::cout << "Kein freien pseudoMidPoint gefunden" << std::endl;
+            do{
+                row_goalpoint = frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint+nextPoint].row;
+                col_goalpoint = frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint+nextPoint].col;
+                nextPoint++;
+                if(frontier_list[0].pseudoMidPoint+nextPoint >= frontier_list[0].numberOfElements-1) {
+                    std::cout << "Kein freier Zielpunkt vorhanden" << std::endl;
+                    std::cout << "row_goal = " << row_goalpoint  << " col_goal = " << col_goalpoint<< std::endl;
+                    break;
+                }
+            }while(lock_gridMap[col_goalpoint][row_goalpoint] == -1);
+        }
+        // std::cout << "Freies Ziel gefunden !" << std::endl;
+        // std::cout << "row_goal = " << row_goalpoint  << " col_goal = " << col_goalpoint<< std::endl;
+    }
+    myPoint = grid2Kartesisch(grid, row_goalpoint, col_goalpoint);
+
+    // myPoint = grid2Kartesisch(grid,
+    //                               frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
+    //                               frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
     switch(MODI) {
         case 0: {
                     std::cout << "MODUS 0 AKTIV" << std::endl;
@@ -176,14 +259,18 @@ bool exploration(ros::NodeHandle &nh) {
         // MODI_1: NUR Anfahren; kein Rotieren!
         case 1: {
                     std::cout << "MODUS 1 AKTIV" << std::endl;
-                    sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
+                    sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, getDistanceToFrontier(nh, myPoint).distance);
+                    // sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
+                    break;
                 }
 
         // MOD1_2: Nach jeder Fahrt 360° rotieren
         case 2: {
                     std::cout << "MODUS 2 AKTIV" << std::endl;
-                    sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
+                    // sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
+                    sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, getDistanceToFrontier(nh, myPoint).distance);
                     rotate360(nh);
+                    break;
                 }
 
         // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
@@ -192,11 +279,26 @@ bool exploration(ros::NodeHandle &nh) {
                     std::cout << "MODUS 3 AKTIV" << std::endl;
 
                     if(frontier_list[0].shouldRotate == 0) {
-                        sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
+                        sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, getDistanceToFrontier(nh, myPoint).distance);
+                        // sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
                     }
                     else {
-                        rotate(nh, frontier_list[0].rotationAngle);
+                            std::cout << "ROTATION ANGLE ------------> " << frontier_list[0].rotationAngle << std::endl;
+                            rotate(nh, frontier_list[0].rotationAngle);
+                        // if(fabs(oldCost[1] - frontier_list[0].cost) < 0.7) {
+                        //
+                        //     std::cout << " $$$$ Genug rotiert, jetzt lieber anfahren " << frontier_list[0].rotationAngle << std::endl;
+                        //     sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, getDistanceToFrontier(nh, myPoint).distance);
+                        // }
+                        // else {
+                        //     rotate(nh, frontier_list[0].rotationAngle);
+                        //     oldCost[rotationCounter] = frontier_list[0].cost;
+                        //     rotationCounter++;
+                        //     if(rotationCounter == 2)
+                        //         rotationCounter = 0;
+                        // }
                     }
+                    break;
                 }
     }
 
@@ -206,6 +308,11 @@ bool exploration(ros::NodeHandle &nh) {
     // NOTE: Kp ob ich das brauche
     frontierCells.clear();
     frontier_list.clear();
+    ros::Rate rate(10);
+    rate.sleep();
+    rate.sleep();
+    rate.sleep();
+    rate.sleep();
     std::cout << "******************* ******************* ******************* ******************* ******************* ******************* START AGAIN " << std::endl;
     return true;
 }

@@ -95,6 +95,7 @@ std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchReg
         for(int j = 0; j < searchRegion[0].size(); j++){
 
             if(searchRegion[i][j] == 0 && filteredCostmap[i][j] == 0) { // prüfen ob Zelle frei ist
+            // if(searchRegion[i][j] == 0 && costmap[i][j] == 0) { // prüfen ob Zelle frei ist
 
                 // 4nhood
                 if(searchRegion[i+1][j] == -1){ // prüfen ob der Nachbar unbekannt ist
@@ -261,8 +262,10 @@ Frontier fillFrontier(std::vector<gridCell> frontier) {
 
     // Berechne den Winkelunterschied zwischen Zielfrontier (minDistande) und Roboterausrichtung (yaw)
     // steering_angle = atan2(goal_pos_y - jackal_position_y, goal_pos_x - jackal_position_x);
-    double steering_angle = atan2(realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].col - robotPos_col, 
-                                  realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].row - robotPos_row);
+    double steering_angle = atan2(realFrontier.connected_f_cells[realFrontier.pseudoMidPoint].col - robotPos_col, 
+                                  realFrontier.connected_f_cells[realFrontier.pseudoMidPoint].row - robotPos_row);
+    // double steering_angle = atan2(realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].col - robotPos_col, 
+    //                               realFrontier.connected_f_cells[realFrontier.idxOfMinDistance].row - robotPos_row);
     realFrontier.rotationAngle = steering_angle - robot_yaw;
     std::cout << "realFrontier.rotationAngle = "<< realFrontier.rotationAngle << std::endl;
 

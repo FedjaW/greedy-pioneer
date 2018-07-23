@@ -62,6 +62,10 @@ distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Po
     float myX_old, myY_old = 0;
     int path_size = srv.response.plan.poses.size();
     distanceAndSteering distAndSteer;
+    if(path_size == 0) {
+        distAndSteer.distance = 1000; // wenn keine weg zum ziel gefunden dann mache es teuer
+        return distAndSteer;
+    }
     distAndSteer.goalSteeringAngle  = atan2(
                                       srv.response.plan.poses[path_size-1].pose.position.y - 
                                       srv.response.plan.poses[path_size-5].pose.position.y, 
@@ -206,6 +210,8 @@ void rotate(ros::NodeHandle &nh, double rotation_angle) {
  
 
 void sendGoal(double x, double y, double radians, double distanceToGoal) {
+    ros::Rate rate(10);
+
   //tell the action client that we want to spin a thread by default
   MoveBaseClient ac("move_base", true);
 
@@ -240,7 +246,11 @@ void sendGoal(double x, double y, double radians, double distanceToGoal) {
   // time = distance / velocity
   // max velocity of Jackal = 2m/s
   // but messuared only 0.5 m/s
-  double timeToDrive = distanceToGoal / 0.40;
+  double timeToDrive = distanceToGoal / 0.35;
+  std::cout << "timeToDrive = " << timeToDrive << std::endl;
+  if(timeToDrive < 0.285) {
+      timeToDrive = 0.5714;
+  }
   ac.sendGoalAndWait(goal, ros::Duration(timeToDrive), ros::Duration(1));
 
   ac.waitForResult();
@@ -249,6 +259,9 @@ void sendGoal(double x, double y, double radians, double distanceToGoal) {
     std::cout << "Hooray, we reached the goal :-)" << std::endl;
   if(ac.getState() == actionlib::SimpleClientGoalState::PREEMPTED)
     std::cout << "Preemted, we asssume we rechead the goal..." << std::endl;
+    // rate.sleep(); // sleep damit die Karte sich kurz "festigt"
+    // rate.sleep(); // sleep damit die Karte sich kurz "festigt"
+    // rate.sleep(); // sleep damit die Karte sich kurz "festigt"
 }
 
 
