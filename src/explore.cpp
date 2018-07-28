@@ -24,23 +24,43 @@ bool exploration(ros::NodeHandle &nh) {
     // MODI 1: NUR Anfahren; kein Rotieren!
     // MOD1 2: Nach jeder Fahrt 360° rotieren
     // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
-    int MODI = 1;
+    int MODI = 0;
 
+    // für den Vizualizer der Frontiers
     std::vector<geometry_msgs::Pose> myVizPos;
     geometry_msgs::Pose dummyPos;
     geometry_msgs::Point myPoint;
+    // ---------------------------------
 
-   std::vector<std::vector<int> > lock_gridMap = gridMap;
-    std::vector<std::vector<int> > filteredMap1 = filterMap(lock_gridMap);
-    std::vector<gridCell> frontierCells = findFrontierCells(filteredMap1);
-    // std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
-    
+
     // für die Funktion fillFrontier / alle variablem sind Global
     double robotPos_x = getRobotPosInMapFrame().getOrigin().x(); // getRobotPosInMapFrame erzeugt ein 
     double robotPos_y = getRobotPosInMapFrame().getOrigin().y(); // globales Objekt vom TransformListener
     robotPos_col = kartesisch2grid(grid, robotPos_x, robotPos_y).col;
     robotPos_row = kartesisch2grid(grid, robotPos_x, robotPos_y).row;
     robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
+    std::cout << "col = " <<  robotPos_col  << std::endl;
+    std::cout << "row = " <<  robotPos_row << std::endl;
+
+
+    // lock die aktuelle grid map
+    std::vector<std::vector<int> > lock_gridMap = gridMap;
+
+    // befreie die fläche auf der der Roboter steht
+    freeRobotOrigin(lock_gridMap, robotPos_row, robotPos_col);
+
+    // filter die Karte
+    std::vector<std::vector<int> > filteredMap1 = filterMap(lock_gridMap);
+
+
+    // floodFill die Fläche in der sich der Roboter befindet 
+    floodFill(filteredMap1, robotPos_row, robotPos_col, 0, 1);
+    // male die freie Fläche aus 
+    maleFreieFlacheAus(filteredMap1);
+    // finde alle frontierzellen
+    std::vector<gridCell> frontierCells = findFrontierCells(filteredMap1);
+
+    // std::vector<gridCell> frontierCells = findFrontierCells(gridMap);
 
     // baue Frontiers aus den f-zellen
     std::vector<Frontier> frontier_list = buildFrontiers(frontierCells);
@@ -104,7 +124,8 @@ bool exploration(ros::NodeHandle &nh) {
         }
         myPoint = grid2Kartesisch(grid, row_goalpoint_, col_goalpoint_);
 
-        distanceAndSteering distAndSteer = getDistanceToFrontier(nh, myPoint); //TODO: was ist wenn Zielpunkt nicht erreichbar ist
+        distanceAndSteering distAndSteer = getDistanceToFrontier(nh, myPoint);
+
 
         frontier.distance2Frontier =  distAndSteer.distance;
         // goalSteeringAngle für das sendGoal() notwendig
@@ -208,6 +229,31 @@ bool exploration(ros::NodeHandle &nh) {
         myVizPos.clear();
     }
 
+    // caluclate connectivity factor of the all Frontiers
+    for(auto& frontier : frontier_list) {
+        double numberOfNhoodRelations = 0;
+        for(int i = 0; i < frontier.connected_f_cells.size(); i++) {
+            for(int d = 0; d < frontier.connected_f_cells.size(); d++){
+                if(d != i) {
+                    if( (abs(frontier.connected_f_cells[i].row - frontier.connected_f_cells[d].row) <= 1) && 
+                        (abs(frontier.connected_f_cells[i].col - frontier.connected_f_cells[d].col) <= 1)) {
+
+                        numberOfNhoodRelations = numberOfNhoodRelations + 1;
+
+                    }
+                }
+            }
+        }
+        double minimumNhoodRelations = (2 * frontier.connected_f_cells.size() - 2);
+        double conn_factor = numberOfNhoodRelations / minimumNhoodRelations;
+        std::cout << "numberOfNhoodRelations = "<<  numberOfNhoodRelations << std::endl;
+        std::cout << "minimumNhoodRelations = "<<  minimumNhoodRelations << std::endl;
+        std::cout << "conn_factor = "<<  conn_factor << std::endl;
+        std::cout << " ---------------  " << std::endl;
+
+    }
+
+
 
 
     // Fahre immer das erste Frontier in der liste an weil es das günstigste ist!
@@ -253,21 +299,21 @@ bool exploration(ros::NodeHandle &nh) {
     switch(MODI) {
         case 0: {
                     std::cout << "MODUS 0 AKTIV" << std::endl;
-                    while(1);
+                    // while(1);
+
+                    return 0;
                 }
 
         // MODI_1: NUR Anfahren; kein Rotieren!
         case 1: {
                     std::cout << "MODUS 1 AKTIV" << std::endl;
                     sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, getDistanceToFrontier(nh, myPoint).distance);
-                    // sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
                     break;
                 }
 
         // MOD1_2: Nach jeder Fahrt 360° rotieren
         case 2: {
                     std::cout << "MODUS 2 AKTIV" << std::endl;
-                    // sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
                     sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, getDistanceToFrontier(nh, myPoint).distance);
                     rotate360(nh);
                     break;
@@ -280,7 +326,6 @@ bool exploration(ros::NodeHandle &nh) {
 
                     if(frontier_list[0].shouldRotate == 0) {
                         sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, getDistanceToFrontier(nh, myPoint).distance);
-                        // sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, frontier_list[0].distance2Frontier);
                     }
                     else {
                             std::cout << "ROTATION ANGLE ------------> " << frontier_list[0].rotationAngle << std::endl;
@@ -339,7 +384,7 @@ void toggleColor(double &r, double &g, double &b) {
             g = 0;
             b = 1;
         }
-        else if((r == 0) && (g == 1) && (b == 1)) {
+        else if((r == 1) && (g == 0) && (b == 1)) {
             r = 1;
             g = 1;
             b = 1;
@@ -369,7 +414,10 @@ int main(int argc, char **argv) {
     rate.sleep(); // TODO: schöner lösen !!!
     rate.sleep(); 
 
+    std::thread timerThread(everySecond);
     while(exploration(nh));
+
+    // watcherThread.detach();
 
     return 0;
 }

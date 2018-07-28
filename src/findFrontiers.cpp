@@ -57,10 +57,10 @@ std::vector<std::vector<int> > filterMap(std::vector<std::vector<int> > filtered
                 if(filteredMap[i-1][j+1] == 0)
                     nhoodKnownCellCounter++;
 
-                if(nhoodKnownCellCounter >= 6) { // bei 6 oder mehr (max 8) bekannten benachbarten Zellen tue:
+                if(nhoodKnownCellCounter >= 5) { // bei 5 oder mehr (max 8) bekannten benachbarten Zellen tue:
                     // Setze diese unbekannte Zelle als BEKANNT weil umgeben von bekanntem Gebiet
                     filteredMap[i][j] = 0;
-                    filteredCostmap[i][j] = 0;
+                    // filteredCostmap[i][j] = 0;
 
                     // std::cout << "filteredMap[i][j] = " << filteredMap[i][j] << std::endl;
                     filteredCells++;
@@ -77,11 +77,143 @@ std::vector<std::vector<int> > filterMap(std::vector<std::vector<int> > filtered
     }
     std::cout << "#filteredCells = " << filteredCells << std::endl;
 
-    myVisualize4.setMarkerArray(nh2, myVizPos, 0.5, 0.1, 0.7, 0);
+    myVisualize4.setMarkerArray(nh2, myVizPos, 1, 0, 0, 0);
     myVizPos.clear();
 
     return filteredMap;
 }
+
+
+void freeRobotOrigin(std::vector<std::vector<int> > & searchRegion, int x, int y) {
+
+    // für die visualisierung
+    ros::NodeHandle nh3;
+    Visualizer myVisualize6;
+    std::vector<geometry_msgs::Pose> myVizPos;
+    geometry_msgs::Point myPoint;
+    geometry_msgs::Pose dummyPos;
+
+    for(int i = 0; i < 11; i++) {
+        searchRegion[x + i][y] = 0;
+                    myPoint = grid2Kartesisch(grid, x+i,y);
+                    dummyPos.position.x = myPoint.x;
+                    dummyPos.position.y = myPoint.y;
+                    myVizPos.push_back(dummyPos);
+        searchRegion[x - i][y] = 0;
+                    myPoint = grid2Kartesisch(grid, x-i,y);
+                    dummyPos.position.x = myPoint.x;
+                    dummyPos.position.y = myPoint.y;
+                    myVizPos.push_back(dummyPos);
+        searchRegion[x][y - i] = 0;
+                    myPoint = grid2Kartesisch(grid, x,y-i);
+                    dummyPos.position.x = myPoint.x;
+                    dummyPos.position.y = myPoint.y;
+                    myVizPos.push_back(dummyPos);
+        searchRegion[x][y + i] = 0;
+                    myPoint = grid2Kartesisch(grid, x,y+i);
+                    dummyPos.position.x = myPoint.x;
+                    dummyPos.position.y = myPoint.y;
+                    myVizPos.push_back(dummyPos);
+        searchRegion[x + i][y + i] = 0;
+                    myPoint = grid2Kartesisch(grid, x+i,y+i);
+                    dummyPos.position.x = myPoint.x;
+                    dummyPos.position.y = myPoint.y;
+                    myVizPos.push_back(dummyPos);
+        searchRegion[x - i][y - i] = 0;
+                    myPoint = grid2Kartesisch(grid, x-i,y-i);
+                    dummyPos.position.x = myPoint.x;
+                    dummyPos.position.y = myPoint.y;
+                    myVizPos.push_back(dummyPos);
+        searchRegion[x - i][y + i] = 0;
+                    myPoint = grid2Kartesisch(grid, x-i,y+i);
+                    dummyPos.position.x = myPoint.x;
+                    dummyPos.position.y = myPoint.y;
+                    myVizPos.push_back(dummyPos);
+        searchRegion[x + i][y - i] = 0;
+                    myPoint = grid2Kartesisch(grid, x+i, y-i);
+                    dummyPos.position.x = myPoint.x;
+                    dummyPos.position.y = myPoint.y;
+                    myVizPos.push_back(dummyPos);
+    }
+    myVisualize6.setMarkerArray(nh3, myVizPos, 0, 1, 1, 0);
+    myVizPos.clear();
+
+}
+
+
+void floodFill(std::vector<std::vector<int> > & searchRegion, int x,int y,int oldcolor,int newcolor)
+{
+
+    // // für die visualisierung des initialen Punktes
+    // ros::NodeHandle nh3;
+    // Visualizer myVisualize7;
+    // std::vector<geometry_msgs::Pose> myVizPos;
+    // geometry_msgs::Point myPoint;
+    // geometry_msgs::Pose dummyPos;
+    //
+    //
+    //                 myPoint = grid2Kartesisch(grid, x,y);
+    //                 dummyPos.position.x = myPoint.x;
+    //                 dummyPos.position.y = myPoint.y;
+    //                 myVizPos.push_back(dummyPos);
+    //
+    // myVisualize7.setMarkerArray(nh3, myVizPos, 1, 1, 0, 0);
+    // myVizPos.clear();
+    //
+    // return;
+
+
+                                                        // 80 für die Costmap damit er auch frontiers findet
+                                                        // wenn er in der legitimen costmap steht
+    if(searchRegion[x][y] == oldcolor && costmap[x][y] < 80)
+    {
+        searchRegion[x][y] = newcolor;
+        // 8er-Nachbarschaft!
+        // so wird sicher jeder Bereich "angemalt"
+        floodFill(searchRegion,x+1,y,oldcolor,newcolor);
+        floodFill(searchRegion,x,y+1,oldcolor,newcolor);
+        floodFill(searchRegion,x-1,y,oldcolor,newcolor);
+        floodFill(searchRegion,x,y-1,oldcolor,newcolor);
+        floodFill(searchRegion,x+1,y+1,oldcolor,newcolor);
+        floodFill(searchRegion,x-1,y-1,oldcolor,newcolor);
+        floodFill(searchRegion,x+1,y-1,oldcolor,newcolor);
+        floodFill(searchRegion,x-1,y+1,oldcolor,newcolor);
+    }
+}
+
+
+
+
+void maleFreieFlacheAus(std::vector<std::vector<int> > searchRegion) {
+    
+    // für die visualisierung
+    ros::NodeHandle nh3;
+    Visualizer myVisualize5;
+    std::vector<geometry_msgs::Pose> myVizPos;
+    geometry_msgs::Point myPoint;
+    geometry_msgs::Pose dummyPos;
+
+    for(int i = searchRegion.size() - 1; i >= 0 ; i = i - searchRegion.size()/100){  // durchsuche ganze Karte
+        for(int j = 0; j < searchRegion[0].size(); j = j + searchRegion.size()/100){
+
+            if(searchRegion[i][j] == 1) { // prüfen ob Zelle frei ist
+
+                    // fülle den vis marker 
+                    myPoint = grid2Kartesisch(grid, j, i);
+                    dummyPos.position.x = myPoint.x;
+                    dummyPos.position.y = myPoint.y;
+                    myVizPos.push_back(dummyPos);
+
+            }
+        }
+    }
+    myVisualize5.setMarkerArray(nh3, myVizPos, 0.1, 0.1, 0.4, 0);
+    myVizPos.clear();
+}
+            
+
+
+
 
 // searchRegion is for now the entiry Map
 std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchRegion) {
@@ -94,8 +226,10 @@ std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchReg
     for(int i = searchRegion.size() - 1; i >= 0 ; i--){      // durchsuche ganze Karte
         for(int j = 0; j < searchRegion[0].size(); j++){
 
-            if(searchRegion[i][j] == 0 && filteredCostmap[i][j] == 0) { // prüfen ob Zelle frei ist
-            // if(searchRegion[i][j] == 0 && costmap[i][j] == 0) { // prüfen ob Zelle frei ist
+            // if(searchRegion[i][j] == 0 && filteredCostmap[i][j] <= 0) { // prüfen ob Zelle frei ist
+            // prüfen ob Zelle auf searchRegion also auf der gridMap frei ist
+            // und ob die Zelle auf der CostMap frei bwz unbekannt ist (beides valide)
+            if(searchRegion[i][j] == 1 && costmap[i][j] <= 0) {
 
                 // 4nhood
                 if(searchRegion[i+1][j] == -1){ // prüfen ob der Nachbar unbekannt ist

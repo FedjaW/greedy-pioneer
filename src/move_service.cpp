@@ -15,10 +15,15 @@
 #include <actionlib/client/simple_action_client.h>
 #include <tf/transform_datatypes.h>
 
+#include <thread>
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
-// void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
+
+
+
 distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate) {
+
     geometry_msgs::PoseStamped Start;
     Start.header.seq = 0;
     Start.header.stamp = ros::Time(0);
@@ -48,8 +53,19 @@ distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Po
     srv.request.start = Start;
     srv.request.goal = Goal;
     srv.request.tolerance = 1.5;
-        
+
+
+
     check_path.call(srv);
+
+    // double checkpath;
+    // std::thread checkPath(myTimer);
+    // while(timerEnded == false) {
+    // checkpath = check_path.call(srv);
+    // std::cout << "checkpath = " << checkpath<< std::endl;
+    // if(checkpath == 1) break;
+    // }
+    // timerEnded = false;
 
     // ROS_INFO("Make plan: %d", (check_path.call(srv) ? 1 : 0));
     // ROS_INFO("Little reminder: check if move_base is turned on");
@@ -71,7 +87,6 @@ distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Po
                                       srv.response.plan.poses[path_size-5].pose.position.y, 
                                       srv.response.plan.poses[path_size-1].pose.position.x - 
                                       srv.response.plan.poses[path_size-5].pose.position.x);
-    
     // ROS_INFO("goalSteeringAngle = %f", distAndSteer.goalSteeringAngle);
     geometry_msgs::PoseStamped myPose;
     for(int i = 0; i < path_size-1; i++) {
@@ -91,7 +106,7 @@ distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Po
     // ROS_INFO("Distanz = %f", distance);
     distAndSteer.distance = distance;
 
-    // myVisualizer2.setMarkerArray(nh, vizPos, 0,1,1,0);
+    myVisualizer2.setMarkerArray(nh, vizPos, 0,1,1,0);
 
     vizPos.clear();
     

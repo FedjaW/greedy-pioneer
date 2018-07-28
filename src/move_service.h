@@ -14,6 +14,7 @@ struct distanceAndSteering {
 // extern tf::StampedTransform robotPosInMapFrame;
 
 // void getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate);
+
 distanceAndSteering getDistanceToFrontier(ros::NodeHandle &nh, geometry_msgs::Point goalCanditate);
 double getDistance(double x1,double y1,double x2,double y2);
 tf::StampedTransform getRobotPosInMapFrame();

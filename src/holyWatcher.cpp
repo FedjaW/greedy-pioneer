@@ -4,12 +4,19 @@
 #include "tf/transform_broadcaster.h"
 #include <ros/ros.h>
 #include <fstream>
+#include <time.h>
+#include <chrono>
+
+#include <thread>
+#include <chrono>
 
 /* struct position {
     float x;
     float y;
 };*/
+double zeiteinheit = 0.5;
 
+bool print = true;
 
 robotPose roboterPosition;
 float roboterVelocity;
@@ -49,7 +56,10 @@ void updateGridMap(const nav_msgs::OccupancyGrid& map){
     }
     grid = map;
     gridMap = grid_vec;
-    calculateExploratedAreaOverTime(map);
+
+// #if print
+//     calculateExploratedAreaOverTime(map);
+// #endif
 }
 
 void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map) {
@@ -62,19 +72,22 @@ void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map) {
     }
     double area = exploredCells * map.info.resolution * map.info.resolution;
     static float initial_time = ros::Time::now().toSec();
-    static float time;
-    time = ros::Time::now().toSec() - initial_time;
+    // static float time;
+    // time = ros::Time::now().toSec() - initial_time;
+    static float time = - zeiteinheit;
+    time = time + zeiteinheit;
+
     // std::cout << "area = "<< area << " / time = " << time << std::endl;
     // std::cout << "distanceTraveled = "<< distanceTraveled << " / time = " << time << std::endl;
     // std::cout << "angleRotated = "<< angleRotated << " / time = " << time << std::endl;
     printToFile(time, area, "AreaOverTime.txt");
-    printToFile(time, distanceTraveled, "DistanceTraveled.txt"); // ditanceTraveled ist global 
-                                                                 // damit ich es hier ins file speicher kann
-                                                                 // sonst zuviele aufrufe!
-    printToFile(time, angleRotated, "AngleRotated.txt");
-    printToFile(time, roboterPosition.yaw, "AbsolutAngle.txt");
-    printToFile(time, roboterVelocity, "RoboterVelocity.txt");
-    printToFile(time, roboterAngularVel, "RoboterAngularVel.txt");
+    // printToFile(time, distanceTraveled, "DistanceTraveled.txt"); // ditanceTraveled ist global 
+    //                                                              // damit ich es hier ins file speicher kann
+    //                                                              // sonst zuviele aufrufe!
+    // printToFile(time, angleRotated, "AngleRotated.txt");
+    // printToFile(time, roboterPosition.yaw, "AbsolutAngle.txt");
+    // printToFile(time, roboterVelocity, "RoboterVelocity.txt");
+    // printToFile(time, roboterAngularVel, "RoboterAngularVel.txt");
     // std::cout << "distanceTraveled = "<< distanceTraveled << " / time = " << time << std::endl;
 }
 
@@ -190,4 +203,35 @@ void startPositionWatcher() {
                                                 updateGridMap);
 
     ros::spin();
+}
+
+
+
+void everySecond() {
+
+    sleep(1);
+    while(1) {
+        // sleep(zeiteinheit);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        calculateExploratedAreaOverTime(grid);
+    }
+
+
+    // int sec = 0;
+    // float t1 = (float)clock()/CLOCKS_PER_SEC;
+    // while(sec <= 60) {
+    //     float t2 = (float)clock()/CLOCKS_PER_SEC;
+    //
+    //     while( t2 - t1 < 1 ) {
+    //     // while( ( (((float)t2)/CLOCKS_PER_SEC) - (((float)t1)/CLOCKS_PER_SEC) ) < 2 ) {
+    //         t2 = (float)clock()/CLOCKS_PER_SEC;
+    //         // std::cout << "t2 - t1 = " << t2 - t1 << std::endl;
+    //     }
+    //     // sec++;
+    //     t1 = (float)clock()/CLOCKS_PER_SEC;
+    //     std::cout << sec++ << " Sekunden"<< std::endl;
+    //     // calculateExploratedAreaOverTime(grid);
+    //
+    // }
+    //     // std::cout << sec << " Sekunden"<< std::endl;
 }

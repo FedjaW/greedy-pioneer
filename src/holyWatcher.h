@@ -34,6 +34,7 @@ void printToFile(double y, double x, std::string str);
 void calculateDistanceTraveled();
 void calculateAngleRotated();
 
+void everySecond();
 
 
 #endif

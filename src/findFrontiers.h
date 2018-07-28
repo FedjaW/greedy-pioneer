@@ -41,9 +41,11 @@ Frontier fillFrontier(std::vector<gridCell> frontier);
 std::vector<std::vector<int> > filterMap(std::vector<std::vector<int> > fullMap);
 
 
+void floodFill(std::vector<std::vector<int> > & searchRegion, int x,int y,int oldcolor,int newcolor);
 
+void maleFreieFlacheAus(std::vector<std::vector<int> > searchRegion);
 
-
+void freeRobotOrigin(std::vector<std::vector<int> > & searchRegion, int x, int y);
 
 
 
