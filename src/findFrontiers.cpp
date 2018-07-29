@@ -37,7 +37,7 @@ std::vector<std::vector<int> > filterMap(std::vector<std::vector<int> > filtered
     for(int i = filteredMap.size() - 2; i >= 1 ; i--){      // durchsuche ganze Karte
         for(int j = 1; j < filteredMap[0].size() - 1 ; j++){
 
-            if(filteredMap[i][j] == -1) { // Wenn Zelle unbekannt
+            if(filteredMap[i][j] == -1  && costmap[i][j] <= 0) { // Wenn Zelle unbekannt
 
                 if(filteredMap[i+1][j] == 0) // prüfen ob der Nachbar bekannt und frei ist
                     nhoodKnownCellCounter++;

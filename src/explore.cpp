@@ -298,22 +298,22 @@ bool exploration(ros::NodeHandle &nh) {
     //                               frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
     switch(MODI) {
         case 0: {
-                    std::cout << "MODUS 0 AKTIV" << std::endl;
-                    // while(1);
+                    std::cout << "MODUS 0 AKTIV - Zeige nur alle Frontiers" << std::endl;
+                    while(1);
 
                     return 0;
                 }
 
         // MODI_1: NUR Anfahren; kein Rotieren!
         case 1: {
-                    std::cout << "MODUS 1 AKTIV" << std::endl;
+                    std::cout << "MODUS 1 AKTIV - Nur fahren" << std::endl;
                     sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, getDistanceToFrontier(nh, myPoint).distance);
                     break;
                 }
 
         // MOD1_2: Nach jeder Fahrt 360° rotieren
         case 2: {
-                    std::cout << "MODUS 2 AKTIV" << std::endl;
+                    std::cout << "MODUS 2 AKTIV - 360° Rotation" << std::endl;
                     sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, getDistanceToFrontier(nh, myPoint).distance);
                     rotate360(nh);
                     break;
@@ -322,7 +322,7 @@ bool exploration(ros::NodeHandle &nh) {
         // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
         // Rotation und Anfahren gemixt
         case 3: {
-                    std::cout << "MODUS 3 AKTIV" << std::endl;
+                    std::cout << "MODUS 3 AKTIV - Greedy Pioneer" << std::endl;
 
                     if(frontier_list[0].shouldRotate == 0) {
                         sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, getDistanceToFrontier(nh, myPoint).distance);

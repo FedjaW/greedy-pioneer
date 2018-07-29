@@ -30,7 +30,7 @@ void updateGridMap(const nav_msgs::OccupancyGrid& map);
 // void update_callback(const map_msgs::OccupancyGridUpdate& costmapUpdate);
 void startPositionWatcher();
 void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map);
-void printToFile(double y, double x, std::string str);
+void printToFile(double time, double area, double distance, double angleRotated, std::string fileName);
 void calculateDistanceTraveled();
 void calculateAngleRotated();
 

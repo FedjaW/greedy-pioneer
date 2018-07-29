@@ -80,7 +80,7 @@ void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map) {
     // std::cout << "area = "<< area << " / time = " << time << std::endl;
     // std::cout << "distanceTraveled = "<< distanceTraveled << " / time = " << time << std::endl;
     // std::cout << "angleRotated = "<< angleRotated << " / time = " << time << std::endl;
-    printToFile(time, area, "AreaOverTime.txt");
+    printToFile(time, area, distanceTraveled, angleRotated, "AreaOverTime.txt");
     // printToFile(time, distanceTraveled, "DistanceTraveled.txt"); // ditanceTraveled ist global 
     //                                                              // damit ich es hier ins file speicher kann
     //                                                              // sonst zuviele aufrufe!
@@ -92,11 +92,13 @@ void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map) {
 }
 
 
-void printToFile(double x, double y, std::string str) {
-    std::ofstream myFile;
-    if(!myFile.is_open())
-        myFile.open(str, std::ios::app);
-    myFile << x << " , "<< y << std::endl;;
+std::ofstream myFile; //global damit das File open bleibt solange das Programm läuft
+void printToFile(double time, double area, double distance, double angleRotated, std::string fileName) {
+    if(!myFile.is_open()) {
+        myFile.open(fileName, std::ios::app);
+        myFile << "time           ; " << "             area           ; "<< "             distance       ; " << "             angleRotated" << std::endl;;
+    }
+    myFile << std::setw(15) << std::left << time << std::setw(15) << std::left<< "; "<< std::setw(15) << std::left << area << std::setw(15) << std::left<< "; " << std::setw(15) << std::left<< distance << std::setw(15) << std::left<< "; " << std::setw(15) << std::left<< angleRotated << std::endl;;
 }
 
 
