@@ -30,9 +30,9 @@ void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::
     m.header.frame_id = "/map";
     m.header.stamp = ros::Time::now();
     m.ns = "basic_shapes";
-    m.scale.x = 0.08;
-    m.scale.y = 0.08;
-    m.scale.z = 0.08;
+    m.scale.x = 0.04;
+    m.scale.y = 0.04;
+    m.scale.z = 0.04;
     m.color.r = r;
     m.color.g = g;
     m.color.b = b;

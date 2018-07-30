@@ -24,7 +24,7 @@ bool exploration(ros::NodeHandle &nh) {
     // MODI 1: NUR Anfahren; kein Rotieren!
     // MOD1 2: Nach jeder Fahrt 360° rotieren
     // MODI 3: Entscheidung treffen aufgrund der Fahrt/Rot-Kostenfunktion
-    int MODI = 0;
+    int MODI = 1;
 
     // für den Vizualizer der Frontiers
     std::vector<geometry_msgs::Pose> myVizPos;
@@ -50,7 +50,7 @@ bool exploration(ros::NodeHandle &nh) {
     std::vector<std::vector<int> > filteredMap1 = filterMap(lock_gridMap);
 
     // befreie die fläche auf der der Roboter steht
-    // freeRobotOrigin(filteredMap1, robotPos_row, robotPos_col);
+    freeRobotOrigin(filteredMap1, robotPos_row, robotPos_col);
 
     // floodFill die Fläche in der sich der Roboter befindet 
     // floodFill(filteredMap1, global_x, global_y , 0, 1);
@@ -338,15 +338,10 @@ bool exploration(ros::NodeHandle &nh) {
 
     myVisualize.setMarkerArray(nh, myVizPos, r,g,b,1); // delete ALL markerArrays
 
-    // NOTE: Kp ob ich das brauche
+    // NOTE: Kp ob ich die vekoren clearen muss aber schadet nicht
     frontierCells.clear();
     frontier_list.clear();
-    ros::Rate rate(10);
-    rate.sleep();
-    rate.sleep();
-    rate.sleep();
-    rate.sleep();
-    std::cout << "******************* ******************* ******************* ******************* ******************* ******************* START AGAIN " << std::endl;
+    std::cout << "******************* ******************* ******************* START AGAIN ******************* ******************* ******************* " << std::endl;
     return true;
 }
 
