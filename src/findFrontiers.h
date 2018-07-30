@@ -9,6 +9,7 @@ extern int robotPos_col; // = kartesisch2grid(grid, rob)
 extern int robotPos_row; // = kartesisch2grid(grid, rob)
 extern double robot_yaw; // =  getRobotPosInMapFrame().
 extern std::vector<std::vector<int> > filteredCostmap;
+extern int stackoverflowsecurity;
 
 
 struct Frontier {
@@ -47,10 +48,10 @@ void maleFreieFlacheAus(std::vector<std::vector<int> > searchRegion);
 
 void freeRobotOrigin(std::vector<std::vector<int> > & searchRegion, int x, int y);
 
+void floodFillNonRecursive(std::vector<std::vector<int> > & searchRegion, int x,int y);
 
 
-
-
+void floodFillIterativ(std::vector<std::vector<int> > & searchRegion, int x,int y);
 
 
 

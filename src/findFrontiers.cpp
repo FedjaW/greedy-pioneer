@@ -4,6 +4,9 @@
 #include "math.h"
 #include "holyWatcher.h"
 #include "visualize.h"
+#include <queue>
+#include <stack>
+// #include "myGetMap.h"
 
 // Minimum size that a Frontier should have to be accepted as valid Frontier
 // Size is the Number of neighbour-gridCells;
@@ -77,7 +80,8 @@ std::vector<std::vector<int> > filterMap(std::vector<std::vector<int> > filtered
     }
     std::cout << "#filteredCells = " << filteredCells << std::endl;
 
-    myVisualize4.setMarkerArray(nh2, myVizPos, 1, 0, 0, 0);
+    // myVisualize4.setMarkerArray(nh2, myVizPos, 1, 0, 0, 0);
+    myVisualize4.setMarkerArray(nh2, myVizPos, 0.1, 0.6, 0.6, 0);
     myVizPos.clear();
 
     return filteredMap;
@@ -92,81 +96,29 @@ void freeRobotOrigin(std::vector<std::vector<int> > & searchRegion, int x, int y
     std::vector<geometry_msgs::Pose> myVizPos;
     geometry_msgs::Point myPoint;
     geometry_msgs::Pose dummyPos;
+    int squareSize = 10;
 
-    for(int i = 0; i < 11; i++) {
-        searchRegion[x + i][y] = 0;
-                    myPoint = grid2Kartesisch(grid, x+i,y);
-                    dummyPos.position.x = myPoint.x;
-                    dummyPos.position.y = myPoint.y;
-                    myVizPos.push_back(dummyPos);
-        searchRegion[x - i][y] = 0;
-                    myPoint = grid2Kartesisch(grid, x-i,y);
-                    dummyPos.position.x = myPoint.x;
-                    dummyPos.position.y = myPoint.y;
-                    myVizPos.push_back(dummyPos);
-        searchRegion[x][y - i] = 0;
-                    myPoint = grid2Kartesisch(grid, x,y-i);
-                    dummyPos.position.x = myPoint.x;
-                    dummyPos.position.y = myPoint.y;
-                    myVizPos.push_back(dummyPos);
-        searchRegion[x][y + i] = 0;
-                    myPoint = grid2Kartesisch(grid, x,y+i);
-                    dummyPos.position.x = myPoint.x;
-                    dummyPos.position.y = myPoint.y;
-                    myVizPos.push_back(dummyPos);
-        searchRegion[x + i][y + i] = 0;
-                    myPoint = grid2Kartesisch(grid, x+i,y+i);
-                    dummyPos.position.x = myPoint.x;
-                    dummyPos.position.y = myPoint.y;
-                    myVizPos.push_back(dummyPos);
-        searchRegion[x - i][y - i] = 0;
-                    myPoint = grid2Kartesisch(grid, x-i,y-i);
-                    dummyPos.position.x = myPoint.x;
-                    dummyPos.position.y = myPoint.y;
-                    myVizPos.push_back(dummyPos);
-        searchRegion[x - i][y + i] = 0;
-                    myPoint = grid2Kartesisch(grid, x-i,y+i);
-                    dummyPos.position.x = myPoint.x;
-                    dummyPos.position.y = myPoint.y;
-                    myVizPos.push_back(dummyPos);
-        searchRegion[x + i][y - i] = 0;
-                    myPoint = grid2Kartesisch(grid, x+i, y-i);
-                    dummyPos.position.x = myPoint.x;
-                    dummyPos.position.y = myPoint.y;
-                    myVizPos.push_back(dummyPos);
-    }
-    myVisualize6.setMarkerArray(nh3, myVizPos, 0, 1, 1, 0);
+   for(int i = x - squareSize; i < x + squareSize ; i++)  {
+        for(int j = y - squareSize; j < y + squareSize ; j++)  {
+            searchRegion[i][j] = 0;
+            myPoint = grid2Kartesisch(grid, i,j);
+            dummyPos.position.x = myPoint.x;
+            dummyPos.position.y = myPoint.y;
+            myVizPos.push_back(dummyPos);
+        }
+   }
+
+    // myVisualize6.setMarkerArray(nh3, myVizPos, 0.6, 0.1, 0.6, 0);
     myVizPos.clear();
-
 }
+
 
 
 void floodFill(std::vector<std::vector<int> > & searchRegion, int x,int y,int oldcolor,int newcolor)
 {
-
-    // // für die visualisierung des initialen Punktes
-    // ros::NodeHandle nh3;
-    // Visualizer myVisualize7;
-    // std::vector<geometry_msgs::Pose> myVizPos;
-    // geometry_msgs::Point myPoint;
-    // geometry_msgs::Pose dummyPos;
-    //
-    //
-    //                 myPoint = grid2Kartesisch(grid, x,y);
-    //                 dummyPos.position.x = myPoint.x;
-    //                 dummyPos.position.y = myPoint.y;
-    //                 myVizPos.push_back(dummyPos);
-    //
-    // myVisualize7.setMarkerArray(nh3, myVizPos, 1, 1, 0, 0);
-    // myVizPos.clear();
-    //
-    // return;
-
-
-                                                        // 80 für die Costmap damit er auch frontiers findet
-                                                        // wenn er in der legitimen costmap steht
-    if(searchRegion[x][y] == oldcolor && costmap[x][y] < 80)
+    if(searchRegion[x][y] == oldcolor && costmap[x][y] < 40)
     {
+
         searchRegion[x][y] = newcolor;
         // 8er-Nachbarschaft!
         // so wird sicher jeder Bereich "angemalt"
@@ -183,6 +135,133 @@ void floodFill(std::vector<std::vector<int> > & searchRegion, int x,int y,int ol
 
 
 
+void floodFillIterativ(std::vector<std::vector<int> > & searchRegion, int x,int y) {
+
+    int costFactor = 40;
+    gridCell startCell;
+    gridCell cell_i;
+    gridCell cell_nbr_1;
+    gridCell cell_nbr_2;
+    gridCell cell_nbr_3;
+    gridCell cell_nbr_4;
+    std::stack<gridCell> myStack;
+    startCell.row = y;
+    startCell.col = x;
+    myStack.push(startCell);
+   // stack.push(x, y);
+
+   while(!myStack.empty()) {
+        
+        cell_i = myStack.top();
+        myStack.pop();
+
+        // std::cout << "inside while" << std::endl;
+       if(searchRegion[cell_i.row][cell_i.col] == 0 && costmap[cell_i.row + 1][cell_i.col] < costFactor) {
+
+            searchRegion[cell_i.row][cell_i.col] = 1;
+
+            cell_nbr_1.row = cell_i.row + 1;
+            cell_nbr_1.col = cell_i.col;
+
+            cell_nbr_2.row = cell_i.row - 1;
+            cell_nbr_2.col = cell_i.col;
+
+            cell_nbr_3.row = cell_i.row;
+            cell_nbr_3.col = cell_i.col + 1;
+
+            cell_nbr_4.row = cell_i.row;
+            cell_nbr_4.col = cell_i.col - 1;
+
+            myStack.push(cell_nbr_1);
+            myStack.push(cell_nbr_2);
+            myStack.push(cell_nbr_3);
+            myStack.push(cell_nbr_4);
+       }
+   }
+   return;
+}
+
+
+
+
+
+
+
+void floodFillNonRecursive(std::vector<std::vector<int> > & searchRegion, int x,int y) {
+int costFactor = 150;
+    // für die visualisierung des initialen Punktes
+    ros::NodeHandle nh3;
+    Visualizer myVisualize7;
+    std::vector<geometry_msgs::Pose> myVizPos;
+    geometry_msgs::Point myPoint;
+    geometry_msgs::Pose dummyPos;
+
+
+    myPoint = grid2Kartesisch(grid, x,y);
+    dummyPos.position.x = myPoint.x;
+    dummyPos.position.y = myPoint.y;
+    myVizPos.push_back(dummyPos);
+
+    myVisualize7.setMarkerArray(nh3, myVizPos, 1, 0, 0, 0);
+    myVizPos.clear();
+
+    gridCell cell_i;
+    gridCell startCell;
+    startCell.row = y;
+    startCell.col = x;
+    std::queue<gridCell> bfs;
+    
+    bfs.push(startCell);
+
+    gridCell cell_nbr;
+
+    while(!bfs.empty()) {
+
+        // std::cout << "inside while" << std::endl;
+        cell_i = bfs.front();
+
+        searchRegion[cell_i.row][cell_i.col] = 1;
+
+        bfs.pop();
+
+        // std::cout << "searchRegion[cell_i.row + 1][cell_i.col] = " << searchRegion[cell_i.row + 1][cell_i.col]<< std::endl;
+        // std::cout << "costmap[cell_i.row + 1][cell_i.col] = " << costmap[cell_i.row + 1][cell_i.col]<< std::endl;
+        if(searchRegion[cell_i.row + 1][cell_i.col] == 0 && costmap[cell_i.row + 1][cell_i.col] < costFactor){ 
+            cell_nbr.row = cell_i.row + 1;
+            cell_nbr.col = cell_i.col;
+            bfs.push(cell_nbr);
+        }
+        if(searchRegion[cell_i.row][cell_i.col + 1] == 0 && costmap[cell_i.row][cell_i.col + 1] < costFactor){
+            cell_nbr.row = cell_i.row;
+            cell_nbr.col = cell_i.col + 1;
+            bfs.push(cell_nbr);
+        }
+        if(searchRegion[cell_i.row - 1][cell_i.col] == 0 && costmap[cell_i.row - 1][cell_i.col] < costFactor){
+            cell_nbr.row = cell_i.row - 1;
+            cell_nbr.col = cell_i.col;
+            bfs.push(cell_nbr);
+        }
+        if(searchRegion[cell_i.row][cell_i.col - 1] == 0 && costmap[cell_i.row][cell_i.col - 1] < costFactor){
+            cell_nbr.row = cell_i.row;
+            cell_nbr.col = cell_i.col - 1;
+            bfs.push(cell_nbr);
+        }
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 void maleFreieFlacheAus(std::vector<std::vector<int> > searchRegion) {
     
@@ -193,8 +272,9 @@ void maleFreieFlacheAus(std::vector<std::vector<int> > searchRegion) {
     geometry_msgs::Point myPoint;
     geometry_msgs::Pose dummyPos;
 
-    for(int i = searchRegion.size() - 1; i >= 0 ; i = i - searchRegion.size()/100){  // durchsuche ganze Karte
-        for(int j = 0; j < searchRegion[0].size(); j = j + searchRegion.size()/100){
+    int reso = 100;
+    for(int i = searchRegion.size() - 1; i >= 0 ; i = i - searchRegion.size()/reso){// durchsuche Karte
+        for(int j = 0; j < searchRegion[0].size(); j = j + searchRegion.size()/reso){
 
             if(searchRegion[i][j] == 1) { // prüfen ob Zelle frei ist
 
@@ -207,7 +287,7 @@ void maleFreieFlacheAus(std::vector<std::vector<int> > searchRegion) {
             }
         }
     }
-    myVisualize5.setMarkerArray(nh3, myVizPos, 0.1, 0.1, 0.4, 0);
+    myVisualize5.setMarkerArray(nh3, myVizPos, 1, 1, 0, 0);
     myVizPos.clear();
 }
             
@@ -261,35 +341,38 @@ std::vector<gridCell> findFrontierCells(std::vector<std::vector<int> > searchReg
                     k++;
                 }
                 
-                // 8 nhood
-                else if(searchRegion[i+1][j-1] == -1) {
-                    myFrontierCell.row = j;
-                    myFrontierCell.col = i;
-                    frontierCells.push_back(myFrontierCell);
-                    k++;
-                }
+                //// 8 nhood ist die Falsche nhood an dieser Stelle
+                //// weil sonst innrere Zellen mitgezählt werden
+                //// und diese machen den conn factor kaputt!!!!
 
-                else if(searchRegion[i+1][j+1] == -1) {
-                    myFrontierCell.row = j;
-                    myFrontierCell.col = i;
-                    frontierCells.push_back(myFrontierCell);
-                    // std::cout << "frontier unten: row " << j << " / col " << i << std::endl;
-                    k++;
-                }
-                else if(searchRegion[i-1][j-1] == -1) {
-                    myFrontierCell.row = j;
-                    myFrontierCell.col = i;
-                    frontierCells.push_back(myFrontierCell);
-                    // std::cout << "frontier unten: row " << j << " / col " << i << std::endl;
-                    k++;
-                }
-                else if(searchRegion[i-1][j+1] == -1) {
-                    myFrontierCell.row = j;
-                    myFrontierCell.col = i;
-                    frontierCells.push_back(myFrontierCell);
-                    // std::cout << "frontier unten: row " << j << " / col " << i << std::endl;
-                    k++;
-                }
+                // else if(searchRegion[i+1][j-1] == -1) {
+                //     myFrontierCell.row = j;
+                //     myFrontierCell.col = i;
+                //     frontierCells.push_back(myFrontierCell);
+                //     k++;
+                // }
+                //
+                // else if(searchRegion[i+1][j+1] == -1) {
+                //     myFrontierCell.row = j;
+                //     myFrontierCell.col = i;
+                //     frontierCells.push_back(myFrontierCell);
+                //     // std::cout << "frontier unten: row " << j << " / col " << i << std::endl;
+                //     k++;
+                // }
+                // else if(searchRegion[i-1][j-1] == -1) {
+                //     myFrontierCell.row = j;
+                //     myFrontierCell.col = i;
+                //     frontierCells.push_back(myFrontierCell);
+                //     // std::cout << "frontier unten: row " << j << " / col " << i << std::endl;
+                //     k++;
+                // }
+                // else if(searchRegion[i-1][j+1] == -1) {
+                //     myFrontierCell.row = j;
+                //     myFrontierCell.col = i;
+                //     frontierCells.push_back(myFrontierCell);
+                //     // std::cout << "frontier unten: row " << j << " / col " << i << std::endl;
+                //     k++;
+                // }
             }
         }
     }
@@ -415,68 +498,3 @@ Frontier fillFrontier(std::vector<gridCell> frontier) {
 
 
 
-
-// ALTE ART (SEHR LANGSAM) die Nachbarn der Frontierzellen zu finden
-#if 0
-std::vector<std::vector<gridCell> > buildFrontiers(std::vector<gridCell> frontierCells) {
-    // std::cout << "HalliHallo 1" << std::endl;
-
-    int oldFrontierSize;
-    std::vector<int> visited;
-    std::vector<gridCell> frontier;
-    std::vector<std::vector<gridCell> > frontier_list;
-
-    for(int i = 0; i < frontierCells.size(); i++) {
-        bool root = false;
-            if( ! (std::find(visited.begin(), visited.end(), i) != visited.end()) ) {
-            
-            for(int n = i+1; n < frontierCells.size(); n++) {
-                if( ! (std::find(visited.begin(), visited.end(), n) != visited.end()) ) {
-
-                    if( (abs(frontierCells[i].row - frontierCells[n].row) <= 1) && (abs(frontierCells[i].col - frontierCells[n].col) <= 1) ) {
-                        visited.push_back(n);
-                        if(root == false) {
-                            frontier.push_back(frontierCells[i]);
-                            visited.push_back(i);
-                            root = true;
-                        }
-                        frontier.push_back(frontierCells[n]);
-                    }
-                }
-
-            }
-
-            int c = 1;
-            do{
-                oldFrontierSize = frontier.size();
-                // std::cout << "oldFrontierSize = " << oldFrontierSize << std::endl;
-                for(c; c < oldFrontierSize; c++) {
-                    // std::cout << "frontier[" <<c<< "]" << ".row = " << frontier[c].row << " / frontier[" <<c<< "]" << ".col = " << frontier[c].col << std::endl;
-                    for(int d = 0; d < frontierCells.size(); d++){
-                        if( ! (std::find(visited.begin(), visited.end(), d) != visited.end()) ) {
-                            // std::cout << "vergleiche mit frontier[" << d << "]" << ".row = " << frontierCells[d].row << " / frontier[" <<d<< "]" << ".col = " << frontierCells[d].col << std::endl;
-                            if( (abs(frontier[c].row - frontierCells[d].row) <= 1) && (abs(frontier[c].col - frontierCells[d].col) <= 1) ) {
-                                visited.push_back(d);
-                                frontier.push_back(frontierCells[d]);
-                            }
-                        }
-                    }
-                }
-                // std::cout << "durchlauf der while schleife Nr. " << loop << std::endl;
-            }while(frontier.size() > oldFrontierSize);
-
-            if(frontier.size() >= 1) 
-                frontier_list.push_back(frontier);
-
-            frontier.clear();
-            oldFrontierSize = 0;
-        }
-
-    }
-    std::cout << "frontier_list.size() = "<< frontier_list.size() << std::endl;
-    return frontier_list;
-}
-#endif
-
-
-        

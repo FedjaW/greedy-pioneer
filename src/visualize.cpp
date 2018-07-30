@@ -5,6 +5,7 @@
 
 Visualizer::Visualizer() {};
 Visualizer::~Visualizer(){};
+
 // Visualizer::Visualizer(double scale_x, double scale_y, double scale_z) {
 //     double scale_x_ = scale_x_;
 //     double scale_y_ = scale_y_;
@@ -24,14 +25,14 @@ void Visualizer::setMarkerArray(ros::NodeHandle &nh, std::vector<geometry_msgs::
     std::vector<visualization_msgs::Marker>& markers = markers_msg.markers;
     visualization_msgs::Marker m;
 
-    m.type = visualization_msgs::Marker::CUBE;
+    m.type = visualization_msgs::Marker::SPHERE;
 
     m.header.frame_id = "/map";
     m.header.stamp = ros::Time::now();
     m.ns = "basic_shapes";
-    m.scale.x = 0.02;
-    m.scale.y = 0.02;
-    m.scale.z = 0.02;
+    m.scale.x = 0.08;
+    m.scale.y = 0.08;
+    m.scale.z = 0.08;
     m.color.r = r;
     m.color.g = g;
     m.color.b = b;

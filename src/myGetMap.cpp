@@ -79,8 +79,8 @@ gridCell kartesisch2grid(const nav_msgs::OccupancyGrid& map, double x, double y)
     // cell.row = (unsigned int) ((x - map.info.origin.position.x)/map.info.resolution);
     // cell.col = (unsigned int) ((y - map.info.origin.position.y)/map.info.resolution);
 
-    cell.row = (unsigned int) ((x - map.info.origin.position.x - map.info.resolution/2) / map.info.resolution);
-    cell.col = (unsigned int) ((y - map.info.origin.position.y - map.info.resolution/2) / map.info.resolution);
+    cell.row = (unsigned int) ((x - map.info.origin.position.x - (map.info.resolution)/2) / map.info.resolution);
+    cell.col = (unsigned int) ((y - map.info.origin.position.y - (map.info.resolution)/2) / map.info.resolution);
 
     return cell;
 }

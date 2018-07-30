@@ -88,7 +88,6 @@ void calculateExploratedAreaOverTime(const nav_msgs::OccupancyGrid& map) {
     // printToFile(time, roboterPosition.yaw, "AbsolutAngle.txt");
     // printToFile(time, roboterVelocity, "RoboterVelocity.txt");
     // printToFile(time, roboterAngularVel, "RoboterAngularVel.txt");
-    // std::cout << "distanceTraveled = "<< distanceTraveled << " / time = " << time << std::endl;
 }
 
 
@@ -210,30 +209,11 @@ void startPositionWatcher() {
 
 
 void everySecond() {
-
-    sleep(1);
+    sleep(1); // warte eine skunde bevor du loslegst mit Daten speichern
+    int milliseconds = zeiteinheit * 1000;
     while(1) {
         // sleep(zeiteinheit);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
         calculateExploratedAreaOverTime(grid);
     }
-
-
-    // int sec = 0;
-    // float t1 = (float)clock()/CLOCKS_PER_SEC;
-    // while(sec <= 60) {
-    //     float t2 = (float)clock()/CLOCKS_PER_SEC;
-    //
-    //     while( t2 - t1 < 1 ) {
-    //     // while( ( (((float)t2)/CLOCKS_PER_SEC) - (((float)t1)/CLOCKS_PER_SEC) ) < 2 ) {
-    //         t2 = (float)clock()/CLOCKS_PER_SEC;
-    //         // std::cout << "t2 - t1 = " << t2 - t1 << std::endl;
-    //     }
-    //     // sec++;
-    //     t1 = (float)clock()/CLOCKS_PER_SEC;
-    //     std::cout << sec++ << " Sekunden"<< std::endl;
-    //     // calculateExploratedAreaOverTime(grid);
-    //
-    // }
-    //     // std::cout << sec << " Sekunden"<< std::endl;
 }

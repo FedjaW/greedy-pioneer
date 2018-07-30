@@ -39,24 +39,27 @@ bool exploration(ros::NodeHandle &nh) {
     robotPos_col = kartesisch2grid(grid, robotPos_x, robotPos_y).col;
     robotPos_row = kartesisch2grid(grid, robotPos_x, robotPos_y).row;
     robot_yaw = tf::getYaw(getRobotPosInMapFrame().getRotation());
-    std::cout << "col = " <<  robotPos_col  << std::endl;
+    std::cout << "col = " <<  robotPos_col << std::endl;
     std::cout << "row = " <<  robotPos_row << std::endl;
 
 
     // lock die aktuelle grid map
     std::vector<std::vector<int> > lock_gridMap = gridMap;
 
-    // befreie die fläche auf der der Roboter steht
-    freeRobotOrigin(lock_gridMap, robotPos_row, robotPos_col);
-
     // filter die Karte
     std::vector<std::vector<int> > filteredMap1 = filterMap(lock_gridMap);
 
+    // befreie die fläche auf der der Roboter steht
+    // freeRobotOrigin(filteredMap1, robotPos_row, robotPos_col);
 
     // floodFill die Fläche in der sich der Roboter befindet 
-    floodFill(filteredMap1, robotPos_row, robotPos_col, 0, 1);
+    // floodFill(filteredMap1, global_x, global_y , 0, 1);
+    // floodFillNonRecursive(filteredMap1, robotPos_row, robotPos_col);
+    floodFillIterativ(filteredMap1, robotPos_row, robotPos_col);
+
     // male die freie Fläche aus 
     maleFreieFlacheAus(filteredMap1);
+
     // finde alle frontierzellen
     std::vector<gridCell> frontierCells = findFrontierCells(filteredMap1);
 
@@ -78,11 +81,6 @@ bool exploration(ros::NodeHandle &nh) {
 
     static double maxDistance = 0;
     static double maxNumberOfElements = 0;
-
-    // damit nicht hin und her-rotiert wird....
-    static double oldCost[2] = {100,100};
-    static int rotationCounter = 0;
-
 
 
     // Fülle die frontierst mit distanz und dem goalSteeringAngle
@@ -114,7 +112,7 @@ bool exploration(ros::NodeHandle &nh) {
                     nextPoint_++;
                     if(frontier.pseudoMidPoint+nextPoint_ >= frontier.numberOfElements-1) {
                         std::cout << "*Kein freier Zielpunkt vorhanden" << std::endl;
-                        std::cout << "*row_goal = " << row_goalpoint_  << " col_goal = " << col_goalpoint_ << std::endl;
+                        // std::cout << "*row_goal = " << row_goalpoint_  << " col_goal = " << col_goalpoint_ << std::endl;
                         break;
                     }
                 }while(lock_gridMap[col_goalpoint_][row_goalpoint_] == -1);
@@ -296,6 +294,8 @@ bool exploration(ros::NodeHandle &nh) {
     // myPoint = grid2Kartesisch(grid,
     //                               frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].row, 
     //                               frontier_list[0].connected_f_cells[frontier_list[0].pseudoMidPoint].col);
+   
+    
     switch(MODI) {
         case 0: {
                     std::cout << "MODUS 0 AKTIV - Zeige nur alle Frontiers" << std::endl;
@@ -330,18 +330,6 @@ bool exploration(ros::NodeHandle &nh) {
                     else {
                             std::cout << "ROTATION ANGLE ------------> " << frontier_list[0].rotationAngle << std::endl;
                             rotate(nh, frontier_list[0].rotationAngle);
-                        // if(fabs(oldCost[1] - frontier_list[0].cost) < 0.7) {
-                        //
-                        //     std::cout << " $$$$ Genug rotiert, jetzt lieber anfahren " << frontier_list[0].rotationAngle << std::endl;
-                        //     sendGoal(myPoint.x, myPoint.y, frontier_list[0].goalSteeringAngle, getDistanceToFrontier(nh, myPoint).distance);
-                        // }
-                        // else {
-                        //     rotate(nh, frontier_list[0].rotationAngle);
-                        //     oldCost[rotationCounter] = frontier_list[0].cost;
-                        //     rotationCounter++;
-                        //     if(rotationCounter == 2)
-                        //         rotationCounter = 0;
-                        // }
                     }
                     break;
                 }
@@ -398,6 +386,11 @@ void toggleColor(double &r, double &g, double &b) {
             r = 0.4;
             g = 0.8;
             b = 0.6;
+        }
+        else if((r == 0.4) && (g == 0.8) && (b == 0.6)) {
+            r = 0.7;
+            g = 0.1;
+            b = 0.9;
         }
 }
 
